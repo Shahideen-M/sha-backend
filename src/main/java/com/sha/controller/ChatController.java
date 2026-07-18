@@ -12,7 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@CrossOrigin(origins = "http://127.0.0.1:5500")
+//@CrossOrigin(origins = "http://127.0.0.1:5500")
+@CrossOrigin(origins = "https://sha-backend-y0r0.onrender.com")
 public class ChatController {
 
     private final ShaService shaService;
