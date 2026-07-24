@@ -9,7 +9,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CraftCalculationRequest {
+public class TradeCalculationRequest {
 
     private List<MaterialRequest> materials;
     private String name;

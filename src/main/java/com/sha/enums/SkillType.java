@@ -1,7 +1,7 @@
 package com.sha.enums;
 
 public enum SkillType {
-    CRAFT_CALCULATOR,
+    TRADE_CALCULATOR,
     FILE,
     DATABASE,
     EMAIL,

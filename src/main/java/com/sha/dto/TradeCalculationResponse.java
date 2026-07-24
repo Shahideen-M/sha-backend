@@ -9,7 +9,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CraftCalculationResponse {
+public class TradeCalculationResponse {
 
     private List<MaterialResponse> materials;
     private int netReceived;
@@ -18,5 +18,4 @@ public class CraftCalculationResponse {
     private int profitPerCraft;
     private int totalProfit;
     private double profitPercentage;
-
 }

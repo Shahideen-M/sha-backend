@@ -2,10 +2,10 @@ package com.sha.service;
 
 import com.sha.dto.ChatRequest;
 import com.sha.dto.ChatResponse;
-import com.sha.dto.CraftCalculationRequest;
-import com.sha.dto.CraftCalculationResponse;
+import com.sha.dto.TradeCalculationRequest;
+import com.sha.dto.TradeCalculationResponse;
 import com.sha.enums.SkillType;
-import com.sha.service.skills.CraftCalculatorSkill;
+import com.sha.service.skills.TradeCalculatorSkill;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -23,10 +23,10 @@ public class ShaService {
         return aiService.chat(chatRequest);
     }
 
-    public CraftCalculationResponse calculateCraft(CraftCalculationRequest request) {
-        CraftCalculatorSkill skill = skillRegistry.findSkill(
-                SkillType.CRAFT_CALCULATOR,
-                CraftCalculatorSkill.class);
+    public TradeCalculationResponse calculateTrade(TradeCalculationRequest request) {
+        TradeCalculatorSkill skill = skillRegistry.findSkill(
+                SkillType.TRADE_CALCULATOR,
+                TradeCalculatorSkill.class);
         return skill.execute(request);
     }
 
