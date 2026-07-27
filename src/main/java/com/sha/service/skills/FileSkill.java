@@ -40,10 +40,6 @@ public class FileSkill implements Skill<FileRequest, FileResponse> {
         };
     }
 
-    private Path getPath(FileRequest request) {
-        return Path.of(request.getPath());
-    }
-
     public FileResponse read(FileRequest request) {
         try {
             Path path = getPath(request);
@@ -144,6 +140,10 @@ public class FileSkill implements Skill<FileRequest, FileResponse> {
         } catch (IOException e) {
             throw new RuntimeException("Cannot search directory: " + request.getPath(), e);
         }
+    }
+
+    private Path getPath(FileRequest request) {
+        return Path.of(request.getPath());
     }
 
     private void validateFile(Path path) {
