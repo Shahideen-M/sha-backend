@@ -1,4 +1,4 @@
-package com.sha.dto;
+package com.sha.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,6 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ChatRequest {
-    private String message;
+public class DeveloperAssistantResponse {
+    private String answer;
 }

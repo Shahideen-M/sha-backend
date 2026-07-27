@@ -1,7 +1,11 @@
 package com.sha.controller;
 
-import com.sha.dto.ChatRequest;
-import com.sha.dto.ChatResponse;
+import com.sha.dto.request.ChatRequest;
+import com.sha.dto.request.DeveloperAssistantRequest;
+import com.sha.dto.request.FileRequest;
+import com.sha.dto.response.ChatResponse;
+import com.sha.dto.response.DeveloperAssistantResponse;
+import com.sha.dto.response.FileResponse;
 import com.sha.service.ShaService;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,4 +29,15 @@ public class ChatController {
     public ChatResponse message(@RequestBody ChatRequest request) {
         return shaService.chat(request);
     }
+
+    @PostMapping("/local/chat")
+    public DeveloperAssistantResponse devChat(@RequestBody DeveloperAssistantRequest request) {
+        return shaService.devAssistance(request);
+    }
+
+    @PostMapping("/local/file")
+    public FileResponse file(@RequestBody FileRequest request) {
+        return shaService.fileOperation(request);
+    }
+
 }

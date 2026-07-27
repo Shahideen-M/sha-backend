@@ -1,0 +1,18 @@
+package com.sha.enums;
+
+public enum DeveloperTaskType {
+    EXPLAIN_CODE,
+    EXPLAIN_ERROR,
+
+    GENERATE_DTO,
+    GENERATE_ENTITY,
+    GENERATE_CONTROLLER,
+    GENERATE_SERVICE,
+    GENERATE_REPOSITORY,
+
+    REVIEW_CODE,
+
+    SPRING_BOOT,
+
+    GENERAL
+}

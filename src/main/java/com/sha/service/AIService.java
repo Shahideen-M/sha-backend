@@ -1,7 +1,7 @@
 package com.sha.service;
 
-import com.sha.dto.ChatRequest;
-import com.sha.dto.ChatResponse;
+import com.sha.dto.request.ChatRequest;
+import com.sha.dto.response.ChatResponse;
 
 public interface AIService {
 

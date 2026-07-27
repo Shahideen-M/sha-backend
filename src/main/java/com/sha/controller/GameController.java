@@ -1,7 +1,7 @@
 package com.sha.controller;
 
-import com.sha.dto.TradeCalculationRequest;
-import com.sha.dto.TradeCalculationResponse;
+import com.sha.dto.request.TradeCalculationRequest;
+import com.sha.dto.response.TradeCalculationResponse;
 import com.sha.service.ShaService;
 import org.springframework.web.bind.annotation.*;
 

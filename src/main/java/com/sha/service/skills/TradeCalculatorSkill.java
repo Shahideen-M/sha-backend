@@ -1,9 +1,9 @@
 package com.sha.service.skills;
 
-import com.sha.dto.TradeCalculationRequest;
-import com.sha.dto.TradeCalculationResponse;
-import com.sha.dto.MaterialRequest;
-import com.sha.dto.MaterialResponse;
+import com.sha.dto.request.TradeCalculationRequest;
+import com.sha.dto.response.TradeCalculationResponse;
+import com.sha.dto.request.MaterialRequest;
+import com.sha.dto.response.MaterialResponse;
 import com.sha.enums.SkillType;
 import com.sha.service.Skill;
 import org.springframework.stereotype.Service;

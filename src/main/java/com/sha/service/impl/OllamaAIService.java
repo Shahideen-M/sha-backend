@@ -10,11 +10,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
-public class GeminiAIService implements AIService {
+public class OllamaAIService implements AIService {
 
     private final ChatClient chatClient;
 
-    public GeminiAIService(@Qualifier("geminiChatClient") ChatClient chatClient) {
+    public OllamaAIService(@Qualifier("ollamaChatClient") ChatClient chatClient) {
         this.chatClient = chatClient;
     }
 
@@ -23,7 +23,7 @@ public class GeminiAIService implements AIService {
 
     @Override
     public ChatResponse chat(ChatRequest chatRequest) {
-        String aiResponse =  chatClient.prompt()
+        String aiResponse = chatClient.prompt()
                 .system(systemPrompt)
                 .user(chatRequest.getMessage())
                 .advisors(advisor ->
@@ -33,5 +33,4 @@ public class GeminiAIService implements AIService {
                 .content();
         return new ChatResponse(aiResponse);
     }
-
 }
