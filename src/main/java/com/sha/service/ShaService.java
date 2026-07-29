@@ -4,10 +4,7 @@ import com.sha.dto.request.*;
 import com.sha.dto.response.*;
 import com.sha.enums.SkillType;
 import com.sha.service.impl.AIRouter;
-import com.sha.service.skills.DeveloperAssistantSkill;
-import com.sha.service.skills.FileSkill;
-import com.sha.service.skills.ProjectReaderSkill;
-import com.sha.service.skills.TradeCalculatorSkill;
+import com.sha.service.skills.*;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -53,6 +50,14 @@ public class ShaService {
         ProjectReaderSkill skill = skillRegistry.findSkill(
                 SkillType.PROJECT,
                 ProjectReaderSkill.class
+        );
+        return skill.execute(request);
+    }
+
+    public AppLauncherResponse appLauncher(AppLauncherRequest request) {
+        AppLauncherSkill skill = skillRegistry.findSkill(
+                SkillType.APP,
+                AppLauncherSkill.class
         );
         return skill.execute(request);
     }

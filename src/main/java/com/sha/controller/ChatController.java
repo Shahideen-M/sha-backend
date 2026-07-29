@@ -1,13 +1,7 @@
 package com.sha.controller;
 
-import com.sha.dto.request.ChatRequest;
-import com.sha.dto.request.DeveloperAssistantRequest;
-import com.sha.dto.request.FileRequest;
-import com.sha.dto.request.ProjectReaderRequest;
-import com.sha.dto.response.ChatResponse;
-import com.sha.dto.response.DeveloperAssistantResponse;
-import com.sha.dto.response.FileResponse;
-import com.sha.dto.response.ProjectReaderResponse;
+import com.sha.dto.request.*;
+import com.sha.dto.response.*;
 import com.sha.service.ShaService;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,5 +39,10 @@ public class ChatController {
     @PostMapping("/local/project")
     public ProjectReaderResponse project(@RequestBody ProjectReaderRequest request) {
         return shaService.projectOperation(request);
+    }
+
+    @PostMapping("/local/app")
+    public AppLauncherResponse app(@RequestBody AppLauncherRequest request) {
+        return shaService.appLauncher(request);
     }
 }

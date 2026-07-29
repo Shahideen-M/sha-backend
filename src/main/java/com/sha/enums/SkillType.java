@@ -5,6 +5,7 @@ public enum SkillType {
     AI,
     FILE,
     PROJECT,
+    APP,
     DATABASE,
     EMAIL,
     AUTOMATION,
