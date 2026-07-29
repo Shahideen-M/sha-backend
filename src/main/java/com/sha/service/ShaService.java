@@ -62,4 +62,11 @@ public class ShaService {
         return skill.execute(request);
     }
 
+    public BrowserResponse browser(BrowserRequest request) {
+        BrowerSkill skill = skillRegistry.findSkill(
+                SkillType.BROWSER,
+                BrowerSkill.class
+        );
+        return skill.execute(request);
+    }
 }

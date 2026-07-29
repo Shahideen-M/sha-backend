@@ -45,4 +45,9 @@ public class ChatController {
     public AppLauncherResponse app(@RequestBody AppLauncherRequest request) {
         return shaService.appLauncher(request);
     }
+
+    @PostMapping("/local/browser")
+    public BrowserResponse browser(@RequestBody BrowserRequest request) {
+        return shaService.browser(request);
+    }
 }

@@ -6,7 +6,7 @@ public enum SkillType {
     FILE,
     PROJECT,
     APP,
-    DATABASE,
+    BROWSER,
     EMAIL,
     AUTOMATION,
 }

@@ -4,7 +4,6 @@ public enum FileOperation {
         READ,
         WRITE,
         UPDATE,
-        APPEND,
         DELETE,
         LIST,
         SEARCH
