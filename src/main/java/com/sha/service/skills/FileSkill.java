@@ -36,6 +36,10 @@ public class FileSkill implements Skill<FileRequest, FileResponse> {
 
             case SEARCH -> search(request);
 
+            case COPY -> copy(request);
+
+            case RENAME -> rename(request);
+
             default -> throw new RuntimeException("Unknown file operation");
         };
     }
@@ -142,6 +146,46 @@ public class FileSkill implements Skill<FileRequest, FileResponse> {
         }
     }
 
+    public FileResponse copy(FileRequest request) {
+
+        Path source = Path.of(request.getSourcePath());
+        Path destination = Path.of(request.getDestinationPath());
+
+        try {
+
+            validateFile(source);
+            validateDirectory(destination.getParent());
+            validateNotExists(destination);
+
+            Files.copy(source, destination);
+
+            return new FileResponse(true, "Successfully copied");
+
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot copy file from " + source + " to " + destination, e);
+        }
+    }
+
+    public FileResponse rename(FileRequest request) {
+
+        Path source = Path.of(request.getSourcePath());
+        Path destination = Path.of(request.getDestinationPath());
+
+        try {
+
+            validateFile(source);
+            validateDirectory(destination.getParent());
+            validateNotExists(destination);
+
+            Files.move(source, destination);
+
+            return new FileResponse(true, "Successfully renamed");
+
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot rename file from " + source + " to " + destination, e);
+        }
+    }
+
     private Path getPath(FileRequest request) {
         return Path.of(request.getPath());
     }
@@ -159,6 +203,12 @@ public class FileSkill implements Skill<FileRequest, FileResponse> {
         if (!Files.exists(path)) throw new RuntimeException("Directory not found: " + path);
 
         if (!Files.isDirectory(path)) throw new RuntimeException("Not a directory: " + path);
+
+    }
+
+    private void validateNotExists(Path path) {
+
+        if (Files.exists(path)) throw new RuntimeException("File already exists: " + path);
 
     }
 

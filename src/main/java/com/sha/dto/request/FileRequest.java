@@ -14,4 +14,7 @@ public class FileRequest {
     private String content = "";
     private FileOperation operation;
     private String searchKeyword;
+    private String sourcePath;
+    private String destinationPath;
+
 }

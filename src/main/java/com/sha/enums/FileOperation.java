@@ -6,5 +6,7 @@ public enum FileOperation {
         UPDATE,
         DELETE,
         LIST,
-        SEARCH
+        SEARCH,
+        COPY,
+        RENAME
 }
