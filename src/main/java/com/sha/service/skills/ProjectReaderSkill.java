@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class ProjectReaderSkill implements Skill<ProjectReaderRequest, ProjectReaderResponse> {
@@ -22,7 +23,14 @@ public class ProjectReaderSkill implements Skill<ProjectReaderRequest, ProjectRe
 
     @Override
     public ProjectReaderResponse execute(ProjectReaderRequest request) {
-        return scanProject(request);
+        return switch (request.getOperation()) {
+
+            case SCAN_PROJECT -> scanProject(request);
+
+            case FIND_FILE -> findFile(request);
+
+            case FIND_TEXT -> findText(request);
+        };
     }
 
     public ProjectReaderResponse scanProject(ProjectReaderRequest request) {
@@ -63,6 +71,50 @@ public class ProjectReaderSkill implements Skill<ProjectReaderRequest, ProjectRe
 
         } catch (IOException e) {
             throw new RuntimeException("Cannot go through the directory: "+ request.getProjectPath(), e);
+        }
+    }
+
+    private ProjectReaderResponse findFile(ProjectReaderRequest request) {
+
+        try {
+            Path path = getProjectPath(request);
+            validate(path);
+
+            List<String> matchingFiles = Files.walk(path)
+                    .filter(Files::isRegularFile)
+                    .filter(file -> file.getFileName().toString().equalsIgnoreCase(request.getFileName()))
+                    .map(path::relativize)
+                    .map(Path::toString)
+                    .toList();
+            return new ProjectReaderResponse(matchingFiles);
+
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot find file: "+ request.getProjectPath(), e);
+        }
+    }
+
+    private ProjectReaderResponse findText(ProjectReaderRequest request) {
+        try {
+            Path path = getProjectPath(request);
+            validate(path);
+
+            List<String> matchingFiles = Files.walk(path)
+                    .filter(Files::isRegularFile)
+                    .filter(file -> {
+                        try {
+                            return Files.readString(file)
+                                    .toLowerCase().contains(request.getSearchText().toLowerCase());
+                        } catch (IOException e) {
+                            return false;
+                        }
+                    })
+                    .map(path::relativize)
+                    .map(Path::toString)
+                    .toList();
+            return new ProjectReaderResponse(matchingFiles);
+
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot search text in project: " + request.getProjectPath(), e);
         }
     }
 
