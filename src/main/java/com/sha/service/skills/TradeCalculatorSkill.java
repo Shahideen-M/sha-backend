@@ -20,7 +20,7 @@ public class TradeCalculatorSkill implements Skill<TradeCalculationRequest, Trad
     }
 
     @Override
-    public TradeCalculationResponse execute(TradeCalculationRequest calculationRequest) {
+    public TradeCalculationResponse executeTyped(TradeCalculationRequest calculationRequest) {
 
         int sellingPrice = calculationRequest.getSellingPrice();
         int taxAmount = sellingPrice * calculationRequest.getTax() / 100;
@@ -62,6 +62,16 @@ public class TradeCalculatorSkill implements Skill<TradeCalculationRequest, Trad
                     totalProfit,
                     profitPercentage);
         }
+    }
+
+    @Override
+    public Class<TradeCalculationRequest> getRequestClass() {
+        return null;
+    }
+
+    @Override
+    public TradeCalculationResponse execute(Object request) {
+        return null;
     }
 
 }

@@ -22,7 +22,7 @@ public class ProjectReaderSkill implements Skill<ProjectReaderRequest, ProjectRe
     }
 
     @Override
-    public ProjectReaderResponse execute(ProjectReaderRequest request) {
+    public ProjectReaderResponse executeTyped(ProjectReaderRequest request) {
         return switch (request.getOperation()) {
 
             case SCAN_PROJECT -> scanProject(request);
@@ -31,6 +31,16 @@ public class ProjectReaderSkill implements Skill<ProjectReaderRequest, ProjectRe
 
             case FIND_TEXT -> findText(request);
         };
+    }
+
+    @Override
+    public Class<ProjectReaderRequest> getRequestClass() {
+        return null;
+    }
+
+    @Override
+    public ProjectReaderResponse execute(Object request) {
+        return null;
     }
 
     public ProjectReaderResponse scanProject(ProjectReaderRequest request) {

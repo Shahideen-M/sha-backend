@@ -22,13 +22,23 @@ public class AppLauncherSkill implements Skill<AppLauncherRequest, AppLauncherRe
     }
 
     @Override
-    public AppLauncherResponse execute(AppLauncherRequest request) {
+    public AppLauncherResponse executeTyped(AppLauncherRequest request) {
 
         return switch (request.getOperation()) {
             case OPEN_APPLICATION -> openApp(request);
             case OPEN_FILE -> openFile(request);
             case OPEN_FOLDER -> openFolder(request);
         };
+    }
+
+    @Override
+    public Class<AppLauncherRequest> getRequestClass() {
+        return AppLauncherRequest.class;
+    }
+
+    @Override
+    public AppLauncherResponse execute(Object request) {
+        return executeTyped((AppLauncherRequest) request);
     }
 
     public AppLauncherResponse openApp(AppLauncherRequest request) {
@@ -93,6 +103,7 @@ public class AppLauncherSkill implements Skill<AppLauncherRequest, AppLauncherRe
             "explorer", "explorer.exe",
             "vscode", "code.cmd",
             "intellij", "C:\\Program Files\\JetBrains\\IntelliJ IDEA Community Edition 2025.2.1\\bin\\idea64.exe",
-            "cmd", "cmd.exe"
+            "cmd", "cmd.exe",
+            "chrome", "chrome"
     );
 }

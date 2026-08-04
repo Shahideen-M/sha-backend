@@ -1,5 +1,7 @@
 package com.sha.controller;
 
+import com.sha.brain.ShaBrain;
+import com.sha.brain.dto.ShaBrainResponse;
 import com.sha.dto.request.*;
 import com.sha.dto.response.*;
 import com.sha.service.ShaService;
@@ -16,17 +18,19 @@ import org.springframework.web.bind.annotation.RestController;
 public class ChatController {
 
     private final ShaService shaService;
+    private final ShaBrain shaBrain;
 
-    public ChatController(ShaService shaService) {
+    public ChatController(ShaService shaService, ShaBrain shaBrain) {
         this.shaService = shaService;
+        this.shaBrain = shaBrain;
     }
 
     @PostMapping("/chat")
-    public ChatResponse message(@RequestBody ChatRequest request) {
-        return shaService.chat(request);
+    public ShaBrainResponse message(@RequestBody ChatRequest request) {
+        return shaBrain.process(request.getMessage());
     }
 
-    @PostMapping("/local/chat")
+    @PostMapping("/local/dev")
     public DeveloperAssistantResponse devChat(@RequestBody DeveloperAssistantRequest request) {
         return shaService.devAssistance(request);
     }

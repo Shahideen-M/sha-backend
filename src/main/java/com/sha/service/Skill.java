@@ -5,5 +5,7 @@ import com.sha.enums.SkillType;
 public interface Skill<REQ, RES> {
 
     SkillType getType();
-    RES execute(REQ request);
+    RES executeTyped(REQ request);
+    Class<REQ> getRequestClass();
+    RES execute(Object request);
 }

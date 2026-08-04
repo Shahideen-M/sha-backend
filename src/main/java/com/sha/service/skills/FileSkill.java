@@ -20,7 +20,7 @@ public class FileSkill implements Skill<FileRequest, FileResponse> {
     }
 
     @Override
-    public FileResponse execute(FileRequest request) {
+    public FileResponse executeTyped(FileRequest request) {
 
         return switch (request.getOperation()) {
 
@@ -42,6 +42,16 @@ public class FileSkill implements Skill<FileRequest, FileResponse> {
 
             default -> throw new RuntimeException("Unknown file operation");
         };
+    }
+
+    @Override
+    public Class<FileRequest> getRequestClass() {
+        return FileRequest.class;
+    }
+
+    @Override
+    public FileResponse execute(Object request) {
+        return executeTyped((FileRequest) request);
     }
 
     public FileResponse read(FileRequest request) {

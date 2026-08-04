@@ -8,7 +8,7 @@ import com.sha.service.Skill;
 import org.springframework.stereotype.Service;
 
 @Service
-public class BrowerSkill implements Skill<BrowserRequest, BrowserResponse> {
+public class BrowserSkill implements Skill<BrowserRequest, BrowserResponse> {
 
     @Override
     public SkillType getType() {
@@ -16,12 +16,22 @@ public class BrowerSkill implements Skill<BrowserRequest, BrowserResponse> {
     }
 
     @Override
-    public BrowserResponse execute(BrowserRequest request) {
+    public BrowserResponse executeTyped(BrowserRequest request) {
         return switch (request.getOperation()) {
             case SEARCH -> search(request);
             case READ_PAGE -> readPage(request);
             case CLOSE_BROWSER -> closeBrowser();
         };
+    }
+
+    @Override
+    public Class<BrowserRequest> getRequestClass() {
+        return null;
+    }
+
+    @Override
+    public BrowserResponse execute(Object request) {
+        return null;
     }
 
     public BrowserResponse search(BrowserRequest request) {

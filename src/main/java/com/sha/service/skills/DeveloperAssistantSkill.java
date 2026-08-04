@@ -24,7 +24,7 @@ public class DeveloperAssistantSkill implements Skill<DeveloperAssistantRequest,
     }
 
     @Override
-    public DeveloperAssistantResponse execute(DeveloperAssistantRequest request) {
+    public DeveloperAssistantResponse executeTyped(DeveloperAssistantRequest request) {
 
         String userInput = request.getContent();
 
@@ -57,5 +57,15 @@ public class DeveloperAssistantSkill implements Skill<DeveloperAssistantRequest,
         ChatResponse chatResponse = aiRouter.chat(chatRequest);
 
         return new DeveloperAssistantResponse(chatResponse.getResponse());
+    }
+
+    @Override
+    public Class<DeveloperAssistantRequest> getRequestClass() {
+        return null;
+    }
+
+    @Override
+    public DeveloperAssistantResponse execute(Object request) {
+        return null;
     }
 }
