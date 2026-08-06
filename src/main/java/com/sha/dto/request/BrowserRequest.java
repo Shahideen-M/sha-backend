@@ -12,4 +12,8 @@ public class BrowserRequest {
 
     private BrowserOperation operation;
     private String searchQuery;
+    private String url;
+    private String selector;
+    private String text;
+    private String key;
 }
