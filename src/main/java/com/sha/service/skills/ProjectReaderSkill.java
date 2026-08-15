@@ -1,7 +1,10 @@
 package com.sha.service.skills;
 
+import com.sha.brain.dto.OperationPrompt;
+import com.sha.brain.prompt.SkillPrompt;
 import com.sha.dto.request.ProjectReaderRequest;
 import com.sha.dto.response.ProjectReaderResponse;
+import com.sha.enums.ScanProjectOperation;
 import com.sha.enums.SkillType;
 import com.sha.service.Skill;
 import org.springframework.stereotype.Service;
@@ -35,12 +38,68 @@ public class ProjectReaderSkill implements Skill<ProjectReaderRequest, ProjectRe
 
     @Override
     public Class<ProjectReaderRequest> getRequestClass() {
-        return null;
+        return ProjectReaderRequest.class;
     }
 
     @Override
     public ProjectReaderResponse execute(Object request) {
-        return null;
+        return executeTyped((ProjectReaderRequest) request);
+    }
+
+    @Override
+    public SkillPrompt<ScanProjectOperation> describe() {
+        return new SkillPrompt<>(
+                SkillType.PROJECT,
+                "Read and analyze software projects.",
+                List.of(
+                        "project",
+                        "codebase",
+                        "source code",
+                        "repository",
+                        "repo",
+                        "scan project",
+                        "find file",
+                        "find text",
+                        "search code"
+                ),
+                List.of(
+                        new OperationPrompt<>(
+                                ScanProjectOperation.SCAN_PROJECT,
+                                "Scan an entire software project.",
+                                List.of("projectPath"),
+                                """
+                                {
+                                  "projectPath":"D:/Projects/Sha",
+                                  "operation":"SCAN_PROJECT"
+                                }
+                                """
+                        ),
+                        new OperationPrompt<>(
+                                ScanProjectOperation.FIND_FILE,
+                                "Find a file in the project.",
+                                List.of("projectPath", "fileName"),
+                                """
+                                {
+                                  "projectPath":"D:/Projects/Sha",
+                                  "fileName":"ChatController.java",
+                                  "operation":"FIND_FILE"
+                                }
+                                """
+                        ),
+                        new OperationPrompt<>(
+                                ScanProjectOperation.FIND_TEXT,
+                                "Search text inside all project files.",
+                                List.of("projectPath", "searchText"),
+                                """
+                                {
+                                  "projectPath":"D:/Projects/Sha",
+                                  "searchText":"SkillRegistry",
+                                  "operation":"FIND_TEXT"
+                                }
+                                """
+                        )
+                )
+        );
     }
 
     public ProjectReaderResponse scanProject(ProjectReaderRequest request) {

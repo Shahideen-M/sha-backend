@@ -1,5 +1,6 @@
 package com.sha.service.skills;
 
+import com.sha.brain.prompt.SkillPrompt;
 import com.sha.dto.request.ChatRequest;
 import com.sha.dto.response.ChatResponse;
 import com.sha.dto.request.DeveloperAssistantRequest;
@@ -61,11 +62,16 @@ public class DeveloperAssistantSkill implements Skill<DeveloperAssistantRequest,
 
     @Override
     public Class<DeveloperAssistantRequest> getRequestClass() {
-        return null;
+        return DeveloperAssistantRequest.class;
     }
 
     @Override
     public DeveloperAssistantResponse execute(Object request) {
+        return executeTyped((DeveloperAssistantRequest) request);
+    }
+
+    @Override
+    public SkillPrompt<?> describe() {
         return null;
     }
 }

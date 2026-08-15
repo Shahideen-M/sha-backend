@@ -69,4 +69,12 @@ public class ShaService {
         );
         return skill.execute(request);
     }
+
+    public MemoryResponse memory(MemoryRequest request) {
+        MemorySkill skill = skillRegistry.findSkill(
+                SkillType.MEMORY,
+                MemorySkill.class
+        );
+        return skill.execute(request);
+    }
 }

@@ -1,7 +1,10 @@
 package com.sha.service.skills;
 
+import com.sha.brain.dto.OperationPrompt;
+import com.sha.brain.prompt.SkillPrompt;
 import com.sha.dto.request.AppLauncherRequest;
 import com.sha.dto.response.AppLauncherResponse;
+import com.sha.enums.LaunchOperation;
 import com.sha.enums.SkillType;
 import com.sha.service.Skill;
 import org.springframework.stereotype.Service;
@@ -10,6 +13,7 @@ import java.awt.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -39,6 +43,59 @@ public class AppLauncherSkill implements Skill<AppLauncherRequest, AppLauncherRe
     @Override
     public AppLauncherResponse execute(Object request) {
         return executeTyped((AppLauncherRequest) request);
+    }
+
+    @Override
+    public SkillPrompt<LaunchOperation> describe() {
+        return new SkillPrompt<>(
+                SkillType.APP,
+                "Open desktop applications, files and folders.",
+                List.of(
+                        "open",
+                        "launch",
+                        "start",
+                        "application",
+                        "app",
+                        "program",
+                        "file",
+                        "folder"
+                ),
+                List.of(
+                        new OperationPrompt<>(
+                                LaunchOperation.OPEN_APPLICATION,
+                                "Launch an installed desktop application.",
+                                List.of("applicationName"),
+                                """
+                                {
+                                  "applicationName":"Chrome",
+                                  "operation":"OPEN_APPLICATION"
+                                }
+                                """
+                        ),
+                        new OperationPrompt<>(
+                                LaunchOperation.OPEN_FILE,
+                                "Open an existing file.",
+                                List.of("path"),
+                                """
+                                {
+                                  "path":"D:/Notes/test.txt",
+                                  "operation":"OPEN_FILE"
+                                }
+                                """
+                        ),
+                        new OperationPrompt<>(
+                                LaunchOperation.OPEN_FOLDER,
+                                "Open an existing folder.",
+                                List.of("path"),
+                                """
+                                {
+                                  "path":"D:/Downloads",
+                                  "operation":"OPEN_FOLDER"
+                                }
+                                """
+                        )
+                )
+        );
     }
 
     public AppLauncherResponse openApp(AppLauncherRequest request) {
@@ -96,14 +153,14 @@ public class AppLauncherSkill implements Skill<AppLauncherRequest, AppLauncherRe
         }
     }
 
-    private static final Map<String, String> APPLICATIONS = Map.of(
-            "notepad", "notepad.exe",
-            "calculator", "calc.exe",
-            "paint", "mspaint.exe",
-            "explorer", "explorer.exe",
-            "vscode", "code.cmd",
-            "intellij", "C:\\Program Files\\JetBrains\\IntelliJ IDEA Community Edition 2025.2.1\\bin\\idea64.exe",
-            "cmd", "cmd.exe",
-            "chrome", "chrome"
+    private static final Map<String, String> APPLICATIONS = Map.ofEntries(
+            Map.entry("notepad", "notepad.exe"),
+            Map.entry("calculator", "calc.exe"),
+            Map.entry("paint", "mspaint.exe"),
+            Map.entry("explorer", "explorer.exe"),
+            Map.entry("vs code", "C:\\Users\\HP\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\Code.cmd"),
+            Map.entry("visual studio code", "C:\\Users\\HP\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\Code.cmd"),
+            Map.entry("intellij", "C:\\Program Files\\JetBrains\\IntelliJ IDEA Community Edition 2025.2.1\\bin\\idea64.exe"),
+            Map.entry("cmd", "cmd.exe")
     );
 }

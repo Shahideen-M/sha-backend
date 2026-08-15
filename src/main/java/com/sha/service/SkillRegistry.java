@@ -8,7 +8,7 @@ import java.util.List;
 @Service
 public class SkillRegistry {
 
-    private List<Skill<?, ?>> skills;
+    private final List<Skill<?, ?>> skills;
 
     public SkillRegistry(List<Skill<?, ?>> skills) {
         this.skills = skills;
@@ -22,5 +22,9 @@ public class SkillRegistry {
                 .orElseThrow(() -> new RuntimeException("Skill not found"));
 
         return skillClass.cast(skill);
+    }
+
+    public List<Skill<?, ?>> getAllSkills() {
+        return skills;
     }
 }

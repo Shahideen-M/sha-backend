@@ -1,5 +1,6 @@
 package com.sha.service.skills;
 
+import com.sha.brain.prompt.SkillPrompt;
 import com.sha.dto.request.TradeCalculationRequest;
 import com.sha.dto.response.TradeCalculationResponse;
 import com.sha.dto.request.MaterialRequest;
@@ -66,11 +67,28 @@ public class TradeCalculatorSkill implements Skill<TradeCalculationRequest, Trad
 
     @Override
     public Class<TradeCalculationRequest> getRequestClass() {
-        return null;
+        return TradeCalculationRequest.class;
     }
 
     @Override
     public TradeCalculationResponse execute(Object request) {
+        return executeTyped((TradeCalculationRequest) request);
+    }
+
+    @Override
+    public SkillPrompt<?> describe() {
+        List.of(
+                "profit",
+                "profit calculation",
+                "trade",
+                "trading",
+                "selling",
+                "sell",
+                "craft",
+                "crafting",
+                "calculator",
+                "calculate"
+        );
         return null;
     }
 

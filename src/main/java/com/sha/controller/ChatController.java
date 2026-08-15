@@ -54,4 +54,9 @@ public class ChatController {
     public BrowserResponse browser(@RequestBody BrowserRequest request) {
         return shaService.browser(request);
     }
+
+    @PostMapping("/local/memory")
+    public MemoryResponse memory(@RequestBody MemoryRequest request) {
+        return shaService.memory(request);
+    }
 }

@@ -58,6 +58,19 @@ public class BrowserSkill implements Skill<BrowserRequest, BrowserResponse> {
                 SkillType.BROWSER,
                 "Search the web and read webpages.",
                 List.of(
+                        "browser",
+                        "web",
+                        "website",
+                        "search",
+                        "google",
+                        "youtube",
+                        "url",
+                        "page",
+                        "navigate",
+                        "open website",
+                        "browse"
+                ),
+                List.of(
                         new OperationPrompt<>(
                                 BrowserOperation.SEARCH,
                                 "Search Google.",

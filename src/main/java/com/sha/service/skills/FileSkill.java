@@ -1,7 +1,10 @@
 package com.sha.service.skills;
 
+import com.sha.brain.dto.OperationPrompt;
+import com.sha.brain.prompt.SkillPrompt;
 import com.sha.dto.request.FileRequest;
 import com.sha.dto.response.FileResponse;
+import com.sha.enums.FileOperation;
 import com.sha.enums.SkillType;
 import com.sha.service.Skill;
 import org.springframework.stereotype.Service;
@@ -52,6 +55,122 @@ public class FileSkill implements Skill<FileRequest, FileResponse> {
     @Override
     public FileResponse execute(Object request) {
         return executeTyped((FileRequest) request);
+    }
+
+    @Override
+    public SkillPrompt<FileOperation> describe() {
+        return new SkillPrompt<>(
+                SkillType.FILE,
+                "Read and manage files and directories.",
+                List.of(
+                        "file",
+                        "read",
+                        "write",
+                        "create",
+                        "update",
+                        "delete",
+                        "remove",
+                        "list",
+                        "search",
+                        "copy",
+                        "rename"
+                ),
+                List.of(
+                        new OperationPrompt<>(
+                                FileOperation.READ,
+                                "Read a file.",
+                                List.of("path"),
+                                """
+                                {
+                                  "path":"D:\\Notes\\test.txt",
+                                  "operation":"READ"
+                                }
+                                """
+                        ),
+                        new OperationPrompt<>(
+                                FileOperation.WRITE,
+                                "Create a new file.",
+                                List.of("path", "content"),
+                                """
+                                {
+                                  "path":"D:\\Notes\\test.txt",
+                                  "content":"Hello Sha",
+                                  "operation":"WRITE"
+                                }
+                                """
+                        ),
+                        new OperationPrompt<>(
+                                FileOperation.UPDATE,
+                                "Update an existing file.",
+                                List.of("path", "content"),
+                                """
+                                {
+                                  "path":"D:\\Notes\\test.txt",
+                                  "content":"Updated content",
+                                  "operation":"UPDATE"
+                                }
+                                """
+                        ),
+                        new OperationPrompt<>(
+                                FileOperation.DELETE,
+                                "Delete a file.",
+                                List.of("path"),
+                                """
+                                {
+                                  "path":"D:\\Notes\\test.txt",
+                                  "operation":"DELETE"
+                                }
+                                """
+                        ),
+                        new OperationPrompt<>(
+                                FileOperation.LIST,
+                                "List files in a directory.",
+                                List.of("path"),
+                                """
+                                {
+                                  "path":"D:\\Projects",
+                                  "operation":"LIST"
+                                }
+                                """
+                        ),
+                        new OperationPrompt<>(
+                                FileOperation.SEARCH,
+                                "Search files by name in a directory.",
+                                List.of("path", "searchKeyword"),
+                                """
+                                {
+                                  "path":"D:\\Projects",
+                                  "searchKeyword":"Chat",
+                                  "operation":"SEARCH"
+                                }
+                                """
+                        ),
+                        new OperationPrompt<>(
+                                FileOperation.COPY,
+                                "Copy a file.",
+                                List.of("sourcePath", "destinationPath"),
+                                """
+                                {
+                                  "sourcePath":"D:\\A.txt",
+                                  "destinationPath":"D:\\Backup\\A.txt",
+                                  "operation":"COPY"
+                                }
+                                """
+                        ),
+                        new OperationPrompt<>(
+                                FileOperation.RENAME,
+                                "Rename or move a file.",
+                                List.of("sourcePath", "destinationPath"),
+                                """
+                                {
+                                  "sourcePath":"D:\\A.txt",
+                                  "destinationPath":"D:\\B.txt",
+                                  "operation":"RENAME"
+                                }
+                                """
+                        )
+                )
+        );
     }
 
     public FileResponse read(FileRequest request) {

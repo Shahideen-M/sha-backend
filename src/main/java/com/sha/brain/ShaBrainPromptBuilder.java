@@ -1,22 +1,35 @@
 package com.sha.brain;
 
+import com.sha.brain.dto.OperationPrompt;
+import com.sha.brain.prompt.SkillPrompt;
+import com.sha.enums.SkillType;
+import com.sha.service.Skill;
+import com.sha.service.SkillRegistry;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class ShaBrainPromptBuilder {
 
+    private final SkillRegistry skillRegistry;
+
+    public ShaBrainPromptBuilder(SkillRegistry skillRegistry) {
+        this.skillRegistry = skillRegistry;
+    }
+
     public String buildIdentity() {
 
         return """
-            You are ShaBrain, the brain of the Sha AI assistant.
-
-            Your primary responsibility is to understand the user's request and decide the best way to handle it.
-
-            You can either:
-            - Answer the user directly.
-            - Call one of the available backend skills.
-
-            You do not execute skills yourself. You only decide what should happen next.
+                You are ShaBrain.
+                
+                You are a routing engine, not an assistant.
+                
+                Your only job is to determine whether a backend skill should be executed.
+                
+                Never pretend that an action has been performed.
+                
+                If an available skill can satisfy the user's request, always return SKILL_CALL.
             """;
     }
 
@@ -24,156 +37,62 @@ public class ShaBrainPromptBuilder {
 
         return """
             Rules:
-
-            - Always understand the user's intention before responding.
-            - Return only valid JSON.
-            - Never return Markdown, code blocks, or explanations.
-            - Use the required response format exactly.
-            - Never invent skills or operations.
-            - If a backend skill is required, return a SKILL_CALL response.
-            - If you can answer directly, return a CHAT response.
-            - If the user's request is unclear, return a CLARIFICATION response.
-            - If the request cannot be handled, return an ERROR response.
-            """;
+            
+            - Return ONLY valid JSON.
+            - The first character must be {.
+            - The last character must be }.
+            - Never return Markdown.
+            - Never use ```json or ``` in the response.
+            - Never return explanations or text outside the JSON.
+            - Never describe an action that requires a backend skill.
+            - When returning follow this operation + parameters.
+            - If an available skill can perform the request, return SKILL_CALL.
+            - CHAT responses are only for normal conversation or questions.
+            - CLARIFICATION is only when the request is ambiguous or required information is missing.
+            - ERROR is only when no available skill can perform the request.
+        """;
     }
 
-    public String buildSkills() {
+    public String buildSkills(List<SkillType> possibleSkills) {
 
-        return """
-            Available Skills:
+        StringBuilder sb = new StringBuilder();
 
-            APP
-            Purpose:
-            Open desktop applications.
+        sb.append("Available Skills:\n\n");
 
-            Operations:
-            - OPEN
+        for (Skill<?, ?> skill : skillRegistry.getAllSkills()) {
 
-            Parameters:
-            - applicationName
-            - operation
+            if (!possibleSkills.contains(skill.getType())) continue;
 
+            SkillPrompt<?> prompt = skill.describe();
 
-            BROWSER
-            Purpose:
-            Search the web, open URLs, read webpages, and close the browser.
-
-            Operations:
-            - SEARCH
-            - OPEN_URL
-            - READ_PAGE
-            - CLOSE
-
-            Parameters:
-            - searchQuery
-            - url
-
-
-            PROJECT
-            Purpose:
-            Read and search software projects.
-
-            Operations:
-            - SCAN_PROJECT
-            - FIND_FILE
-            - FIND_TEXT
-
-            Parameters:
-            - projectPath
-            - fileName
-            - searchText
-
-
-            FILE
-            Purpose:
-            Read and manage files.
-
-            Operations:
-            - READ
-            - CREATE
-            - UPDATE
-            - COPY
-            - RENAME
-            - DELETE
-            - LIST
-
-            Parameters:
-            - sourcePath
-            - destinationPath
-            - filePath
-            - content
-            """;
-    }
-
-    public String buildExamples() {
-
-        return """
-            Examples:
-
-            User:
-            Open Chrome
-
-            Response:
-            {
-              "type": "SKILL_CALL",
-              "skill": "APP",
-              "operation": "OPEN",
-              "parameters": {
-                "applicationName": "Chrome",
-                "operation": "OPEN_APPLICATION"
-              }
+            if (prompt == null) {
+                continue;
             }
 
+            sb.append("Skill: ").append(prompt.getSkill()).append("\n");
+            sb.append("Purpose: ").append(prompt.getPurpose()).append("\n");
 
-            User:
-            Search Spring Boot
+            for (OperationPrompt<?> operation : prompt.getOperations()) {
 
-            Response:
-            {
-              "type": "SKILL_CALL",
-              "skill": "BROWSER",
-              "operation": "SEARCH",
-              "parameters": {
-                "searchQuery": "Spring Boot"
-              }
+                sb.append("\nOperation: ")
+                        .append(operation.getOperation())
+                        .append("\n");
+
+                sb.append("Description: ")
+                        .append(operation.getDescription())
+                        .append("\n");
+
+                sb.append("Parameters: ")
+                        .append(operation.getParameters())
+                        .append("\n");
+
+                sb.append("Example:\n")
+                        .append(operation.getExampleJson())
+                        .append("\n");
             }
-
-
-            User:
-            Find ChatController.java
-
-            Response:
-            {
-              "type": "SKILL_CALL",
-              "skill": "PROJECT",
-              "operation": "FIND_FILE",
-              "parameters": {
-                "fileName": "ChatController.java"
-              }
-            }
-            
-            
-
-
-            User:
-            What is Spring Boot?
-
-            Response:
-            {
-              "type": "CHAT",
-              "message": "Spring Boot is a Java framework..."
-            }
-
-
-            User:
-            Open it
-
-            Response:
-            {
-              "type": "CLARIFICATION",
-              "message": "Which application would you like me to open?"
-            }
-            """;
+            sb.append("\n---------------------------------\n\n");
+        }
+        return sb.toString();
     }
 
     public String buildUserMessage(String message) {
@@ -185,15 +104,53 @@ public class ShaBrainPromptBuilder {
            \s""".formatted(message);
     }
 
-    public String buildPrompt(String message) {
+    public String buildResponseFormat() {
+        return """
+        Response Format
+
+        CHAT
+
+        {
+          "type":"CHAT",
+          "message":"..."
+        }
+
+        SKILL_CALL
+
+        {
+          "type":"SKILL_CALL",
+          "skill":"FILE",
+          "operation":"READ",
+          "parameters":{
+            ...
+          }
+        }
+
+        CLARIFICATION
+
+        {
+          "type":"CLARIFICATION",
+          "message":"..."
+        }
+
+        ERROR
+
+        {
+          "type":"ERROR",
+          "message":"..."
+        }
+        """;
+    }
+
+    public String buildPrompt(String message, List<SkillType> possibleSkills) {
 
         return buildIdentity()
                 + "\n\n"
                 + buildRules()
                 + "\n\n"
-                + buildSkills()
+                + buildSkills(possibleSkills)
                 + "\n\n"
-                + buildExamples()
+                + buildResponseFormat()
                 + "\n\n"
                 + buildUserMessage(message);
     }
