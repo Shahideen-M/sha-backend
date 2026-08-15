@@ -263,9 +263,10 @@ public class FileSkill implements Skill<FileRequest, FileResponse> {
             Path path = getPath(request);
             validateDirectory(path);
 
+            String keyword = request.getSearchKeyword().trim().toLowerCase();
             List<String> matchingFiles = Files.list(path)
                     .map(file -> file.getFileName().toString())
-                    .filter(name -> name.contains(request.getSearchKeyword()))
+                    .filter(name -> name.toLowerCase().contains(keyword))
                     .toList();
 
             return new FileResponse(matchingFiles);
