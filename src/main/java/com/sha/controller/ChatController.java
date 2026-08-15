@@ -59,4 +59,10 @@ public class ChatController {
     public MemoryResponse memory(@RequestBody MemoryRequest request) {
         return shaService.memory(request);
     }
+
+
+    @PostMapping("/local/islam")
+    public IslamicResponse surah(@RequestBody IslamicRequest request) {
+        return shaService.islam(request);
+    }
 }

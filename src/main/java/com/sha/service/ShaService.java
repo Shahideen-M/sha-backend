@@ -77,4 +77,12 @@ public class ShaService {
         );
         return skill.execute(request);
     }
+
+    public IslamicResponse islam(IslamicRequest request) {
+        IslamicSkill skill = skillRegistry.findSkill(
+                SkillType.ISLAM,
+                IslamicSkill.class
+        );
+        return skill.execute(request);
+    }
 }
