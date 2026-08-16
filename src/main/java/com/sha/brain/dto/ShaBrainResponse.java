@@ -1,6 +1,6 @@
 package com.sha.brain.dto;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import com.sha.brain.enums.ShaResponseType;
 import com.sha.enums.SkillType;
 import lombok.AllArgsConstructor;
@@ -21,4 +21,5 @@ public class ShaBrainResponse {
     private String operation;
 
     private JsonNode parameters;
+    private JsonNode data;
 }

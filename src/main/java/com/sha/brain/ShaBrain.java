@@ -1,9 +1,9 @@
 package com.sha.brain;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 import com.sha.brain.dto.ShaBrainResponse;
 import com.sha.dto.request.ChatRequest;
 import com.sha.dto.response.ChatResponse;
@@ -29,11 +29,9 @@ public class ShaBrain {
 
     public ShaBrainResponse process(String userMessage) {
 
-        List<SkillType> possibleSkills =
-                skillRouter.findPossibleSkills(userMessage);
+        List<SkillType> possibleSkills = skillRouter.findPossibleSkills(userMessage);
 
-        String prompt =
-                promptBuilder.buildPrompt(userMessage, possibleSkills);
+        String prompt = promptBuilder.buildPrompt(userMessage, possibleSkills);
 
         System.out.println(prompt);
 
@@ -60,9 +58,8 @@ public class ShaBrain {
                             Skill.class
                     );
 
-            var parameters =
-                    (com.fasterxml.jackson.databind.node.ObjectNode)
-                            brainResponse.getParameters();
+            ObjectNode parameters =
+                    (ObjectNode) brainResponse.getParameters();
 
             parameters.put(
                     "operation",
@@ -76,11 +73,12 @@ public class ShaBrain {
                     );
 
             Object exe = skill.execute(req);
-            brainResponse.setMessage(exe.toString());
+            JsonNode data = objectMapper.valueToTree(exe);
+            brainResponse.setData(data);
 
             return brainResponse;
 
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
 
             throw new RuntimeException("ERROR" + e);
         }
