@@ -9,5 +9,6 @@ public enum SkillType {
     BROWSER,
     EMAIL,
     AUTOMATION,
-    MEMORY, ISLAM,
+    MEMORY,
+    ISLAM,
 }
