@@ -14,12 +14,12 @@ public class AIRouter {
         this.geminiAIService = geminiAIService;
         this.ollamaAIService = ollamaAIService;
     }
-//
-//    public ChatResponse chat(ChatRequest request) {
-//        return ollamaAIService.chat(request);
-//    }
 
     public ChatResponse chat(ChatRequest request) {
-        return geminiAIService.chat(request);
+        return ollamaAIService.chat(request);
     }
+
+//    public ChatResponse chat(ChatRequest request) {
+//        return geminiAIService.chat(request);
+//    }
 }

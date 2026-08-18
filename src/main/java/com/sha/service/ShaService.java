@@ -85,4 +85,12 @@ public class ShaService {
         );
         return skill.execute(request);
     }
+
+    public ContentCreatorResponse content(ContentCreatorRequest request) {
+        ContentCreatorSkill skill = skillRegistry.findSkill(
+                SkillType.CONTENT_CREATOR,
+                ContentCreatorSkill.class
+        );
+        return skill.execute(request);
+    }
 }

@@ -11,4 +11,5 @@ public enum SkillType {
     AUTOMATION,
     MEMORY,
     ISLAM,
+    CONTENT_CREATOR
 }

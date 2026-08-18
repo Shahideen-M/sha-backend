@@ -65,4 +65,9 @@ public class ChatController {
     public IslamicResponse surah(@RequestBody IslamicRequest request) {
         return shaService.islam(request);
     }
+
+    @PostMapping("/local/content")
+    public ContentCreatorResponse content(@RequestBody ContentCreatorRequest request) {
+        return shaService.content(request);
+    }
 }
