@@ -6,8 +6,7 @@ import com.sha.service.Skill;
 import com.sha.service.SkillRegistry;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Component
 public class SkillRouter {
@@ -20,8 +19,8 @@ public class SkillRouter {
 
     public List<SkillType> findPossibleSkills(String userMessage) {
 
-        String message = userMessage.toLowerCase();
-        List<SkillType> possibleSkills = new ArrayList<>();
+        String message = userMessage.toLowerCase().replaceAll("[^a-z0-9]+", " ").trim();
+        Set<SkillType> possibleSkills = new LinkedHashSet<>();
 
         for (Skill<?, ?> skill : registry.getAllSkills()) {
             SkillPrompt<?> prompt = skill.describe();
@@ -29,7 +28,8 @@ public class SkillRouter {
                 continue;
             }
             for (String keyword : prompt.getKeywords()) {
-                if (message.contains(keyword.toLowerCase())) {
+                String normalizedKeyword = keyword.toLowerCase().replaceAll("[^a-z0-9]+", " ").trim();
+                if (message.contains(normalizedKeyword)) {
                     possibleSkills.add(skill.getType());
                     break;
                 }
@@ -41,7 +41,7 @@ public class SkillRouter {
             }
         }
 
-        return possibleSkills;
+        return new ArrayList<>(possibleSkills);
     }
 
 }

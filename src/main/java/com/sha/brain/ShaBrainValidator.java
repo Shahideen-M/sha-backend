@@ -20,6 +20,16 @@ public class ShaBrainValidator {
     public void validateSkillCall(ShaBrainResponse response) {
         if (response.getSkill() == null) throw new RuntimeException("Skill is required.");
         if (response.getOperation() == null) throw new RuntimeException("Operation is required.");
+        if (isParameterlessOperation(response.getOperation())) return;
         if (response.getParameters() == null) throw new RuntimeException("Parameters are required.");
+    }
+
+    private boolean isParameterlessOperation(String operation) {
+        return switch (operation) {
+            case "SURAH_LIST",
+                 "READ_PAGE",
+                 "CLOSE_BROWSER" -> true;
+            default -> false;
+        };
     }
 }

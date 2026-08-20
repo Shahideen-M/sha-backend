@@ -58,8 +58,9 @@ public class ShaBrain {
                             Skill.class
                     );
 
-            ObjectNode parameters =
-                    (ObjectNode) brainResponse.getParameters();
+            ObjectNode parameters = brainResponse.getParameters() != null
+                    ? (ObjectNode) brainResponse.getParameters()
+                    : objectMapper.createObjectNode();
 
             parameters.put(
                     "operation",
