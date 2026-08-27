@@ -78,7 +78,7 @@ public class ContentCreatorSkill implements Skill<ContentCreatorRequest, Content
 
             User topic:
             """ + request.getContent();
-        ChatResponse response = aiRouter.chat(
+        ChatResponse response = aiRouter.ollamaChat(
                 new ChatRequest(prompt)
         );
 

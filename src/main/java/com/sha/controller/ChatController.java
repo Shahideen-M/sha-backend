@@ -70,4 +70,9 @@ public class ChatController {
     public ContentCreatorResponse content(@RequestBody ContentCreatorRequest request) {
         return shaService.content(request);
     }
+
+    @PostMapping("/local/videoEditor")
+    public VideoEditorResponse videoEditor(@RequestBody VideoEditorRequest request) {
+        return shaService.videoEditor(request);
+    }
 }

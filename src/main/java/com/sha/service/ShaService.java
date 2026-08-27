@@ -11,15 +11,9 @@ import org.springframework.stereotype.Service;
 public class ShaService {
 
     private final SkillRegistry skillRegistry;
-    private final AIRouter aiRouter;
 
-    public ShaService (SkillRegistry skillRegistry, AIRouter aiRouter) {
+    public ShaService (SkillRegistry skillRegistry) {
         this.skillRegistry = skillRegistry;
-        this.aiRouter = aiRouter;
-    }
-
-    public ChatResponse chat(ChatRequest chatRequest) {
-        return aiRouter.chat(chatRequest);
     }
 
     public TradeCalculationResponse calculateTrade(TradeCalculationRequest request) {
@@ -90,6 +84,14 @@ public class ShaService {
         ContentCreatorSkill skill = skillRegistry.findSkill(
                 SkillType.CONTENT_CREATOR,
                 ContentCreatorSkill.class
+        );
+        return skill.execute(request);
+    }
+
+    public VideoEditorResponse videoEditor(VideoEditorRequest request) {
+        VideoEditorSkill skill = skillRegistry.findSkill(
+                SkillType.VIDEO_EDITING,
+                VideoEditorSkill.class
         );
         return skill.execute(request);
     }
