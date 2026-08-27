@@ -22,4 +22,7 @@ public class ShaBrainResponse {
 
     private JsonNode parameters;
     private JsonNode data;
+
+    private Boolean approvalRequired = false;
+    private String approvalToken = "";
 }

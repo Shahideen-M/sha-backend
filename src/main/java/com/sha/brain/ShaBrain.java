@@ -1,5 +1,7 @@
 package com.sha.brain;
 
+import com.sha.brain.dto.PendingAction;
+import com.sha.brain.enums.AuthorityLevel;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -26,6 +28,8 @@ public class ShaBrain {
     private final ShaBrainValidator validator;
     private final SkillRegistry skillRegistry;
     private final SkillRouter skillRouter;
+    private final AuthorityManager authorityManager;
+    private final ApprovalStore approvalStore;
 
     public ShaBrainResponse process(String userMessage) {
 
@@ -36,7 +40,7 @@ public class ShaBrain {
         System.out.println(prompt);
 
         ChatRequest request = new ChatRequest(prompt);
-        ChatResponse response = aiRouter.chat(request);
+        ChatResponse response = aiRouter.geminiChat(request);
 
         System.out.println(response.getResponse());
 
@@ -73,6 +77,44 @@ public class ShaBrain {
                             skill.getRequestClass()
                     );
 
+            AuthorityLevel authority = authorityManager.check(
+                    brainResponse.getSkill(),
+                    brainResponse.getOperation()
+            );
+
+            if (authority == AuthorityLevel.SAFE) {
+                Object exe = skill.execute(req);
+                JsonNode data = objectMapper.valueToTree(exe);
+                brainResponse.setData(data);
+                return brainResponse;
+            }
+
+            if (authority == AuthorityLevel.BLOCKED) {
+                throw new RuntimeException("Action blocked by Sha authority policy.");
+            }
+
+            if (authority == AuthorityLevel.APPROVAL_REQUIRED) {
+                PendingAction pendingAction = new PendingAction(
+                        brainResponse.getSkill(),
+                        brainResponse.getOperation(),
+                        brainResponse.getParameters(),
+                        authority
+                );
+
+                String token = approvalStore.create(pendingAction);
+
+                brainResponse.setApprovalRequired(true);
+                brainResponse.setApprovalToken(token);
+
+                brainResponse.setMessage(
+                        "Approval required before executing "
+                                + brainResponse.getOperation()
+                                + " on "
+                                + brainResponse.getSkill()
+                );
+                return brainResponse;
+            }
+
             Object exe = skill.execute(req);
             JsonNode data = objectMapper.valueToTree(exe);
             brainResponse.setData(data);
@@ -81,7 +123,7 @@ public class ShaBrain {
 
         } catch (JacksonException e) {
 
-            throw new RuntimeException("ERROR" + e);
+            throw new RuntimeException("Failed to parse ShaBrain response" + e);
         }
     }
 }
