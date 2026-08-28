@@ -14,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 @Service
 public class ProjectReaderSkill implements Skill<ProjectReaderRequest, ProjectReaderResponse> {
