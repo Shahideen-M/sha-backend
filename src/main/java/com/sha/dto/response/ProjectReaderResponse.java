@@ -11,6 +11,8 @@ import java.util.List;
 @NoArgsConstructor
 public class ProjectReaderResponse {
 
+    private boolean success;
+    private String message;
     private String projectName;
     private List<String> javaFiles;
     private List<String> resourceFiles;
@@ -19,13 +21,17 @@ public class ProjectReaderResponse {
 
     private List<String> matchingFiles;
 
-    public ProjectReaderResponse(List<String> matchingFiles) {
+    public ProjectReaderResponse(boolean success, String message, List<String> matchingFiles) {
+        this.success = success;
+        this.message = message;
         this.matchingFiles = matchingFiles;
     }
 
-    public ProjectReaderResponse(String projectName, List<String> javaFiles,
+    public ProjectReaderResponse(boolean success, String message, String projectName, List<String> javaFiles,
                                  List<String> resourceFiles, List<String> configurationFiles,
                                  List<String> allFiles) {
+        this.success = success;
+        this.message = message;
         this.projectName = projectName;
         this.javaFiles = javaFiles;
         this.resourceFiles = resourceFiles;
