@@ -1,6 +1,7 @@
 package com.sha.controller;
 
 import com.sha.brain.ShaBrain;
+import com.sha.brain.dto.ExecutionResult;
 import com.sha.brain.dto.ShaBrainResponse;
 import com.sha.dto.request.*;
 import com.sha.dto.response.*;
@@ -26,7 +27,7 @@ public class ChatController {
     }
 
     @PostMapping("/chat")
-    public ShaBrainResponse message(@RequestBody ChatRequest request) {
+    public ExecutionResult message(@RequestBody ChatRequest request) {
         return shaBrain.process(request.getMessage());
     }
 
