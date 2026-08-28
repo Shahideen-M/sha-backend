@@ -131,6 +131,8 @@ public class ProjectReaderSkill implements Skill<ProjectReaderRequest, ProjectRe
                     });
 
             return new ProjectReaderResponse(
+                    true,
+                    "Scanned the project: " + projectName,
                     projectName,
                     javaFiles,
                     resourceFiles,
@@ -155,7 +157,7 @@ public class ProjectReaderSkill implements Skill<ProjectReaderRequest, ProjectRe
                     .map(path::relativize)
                     .map(Path::toString)
                     .toList();
-            return new ProjectReaderResponse(matchingFiles);
+            return new ProjectReaderResponse(true, "Found some matching files: \n",matchingFiles);
 
         } catch (IOException e) {
             throw new RuntimeException("Cannot find file: "+ request.getProjectPath(), e);
@@ -180,7 +182,7 @@ public class ProjectReaderSkill implements Skill<ProjectReaderRequest, ProjectRe
                     .map(path::relativize)
                     .map(Path::toString)
                     .toList();
-            return new ProjectReaderResponse(matchingFiles);
+            return new ProjectReaderResponse(true, "Found some files matching the text sent: ",matchingFiles);
 
         } catch (IOException e) {
             throw new RuntimeException("Cannot search text in project: " + request.getProjectPath(), e);
