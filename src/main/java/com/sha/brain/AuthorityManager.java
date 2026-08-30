@@ -11,8 +11,9 @@ public class AuthorityManager {
         if (skill == SkillType.FILE) {
             return switch (operation) {
                 case "READ", "LIST", "SEARCH" -> AuthorityLevel.SAFE;
-                case "WRITE", "UPDATE", "DELETE", "COPY", "RENAME" -> AuthorityLevel.APPROVAL_REQUIRED;
-                default -> AuthorityLevel.BLOCKED;
+                case "WRITE", "UPDATE", "COPY", "RENAME" -> AuthorityLevel.APPROVAL_REQUIRED;
+                case "DELETE" -> AuthorityLevel.BLOCKED;
+                default -> null;
             };
         }
         return AuthorityLevel.SAFE;

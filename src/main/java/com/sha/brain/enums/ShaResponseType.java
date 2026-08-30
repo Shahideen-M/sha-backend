@@ -2,7 +2,8 @@ package com.sha.brain.enums;
 
 public enum ShaResponseType {
     CHAT,
-    SKILL_CALL,
+    EXECUTION_RESULT,
+    APPROVAL_REQUIRED,
     CLARIFICATION,
     ERROR
 }

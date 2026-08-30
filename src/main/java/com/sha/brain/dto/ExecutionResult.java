@@ -13,4 +13,6 @@ public class ExecutionResult {
 
     private boolean success;
     private List<StepResult> stepResults;
+    private boolean approvalRequired;
+    private String approvalToken;
 }

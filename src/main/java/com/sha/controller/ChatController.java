@@ -27,7 +27,7 @@ public class ChatController {
     }
 
     @PostMapping("/chat")
-    public ExecutionResult message(@RequestBody ChatRequest request) {
+    public ShaBrainResponse message(@RequestBody ChatRequest request) {
         return shaBrain.process(request.getMessage());
     }
 

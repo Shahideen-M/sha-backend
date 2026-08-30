@@ -1,9 +1,6 @@
 package com.sha.brain;
 
-import com.sha.brain.dto.ExecutionPlan;
-import com.sha.brain.dto.ExecutionResult;
-import com.sha.brain.dto.ExecutionStep;
-import com.sha.brain.dto.StepResult;
+import com.sha.brain.dto.*;
 import com.sha.brain.enums.AuthorityLevel;
 import com.sha.service.Skill;
 import com.sha.service.SkillRegistry;
@@ -28,7 +25,18 @@ public class ExecutionPlanExecutor {
     public ExecutionResult execute(ExecutionPlan plan) {
 
         List<StepResult> stepResults = new ArrayList<>();
-        for (ExecutionStep step : plan.getSteps()) {
+        return executeFrom(plan, 0, stepResults, false);
+    }
+
+    private ExecutionResult executeFrom(
+            ExecutionPlan plan,
+            int startIndex,
+            List<StepResult> stepResults,
+            boolean approved
+    ) {
+        for (int i = startIndex; i < plan.getSteps().size(); i++) {
+            ExecutionStep step = plan.getSteps().get(i);
+
             Skill skill = skillRegistry.findSkill(
                     step.getSkill(),
                     Skill.class
@@ -47,7 +55,8 @@ public class ExecutionPlanExecutor {
 
             AuthorityLevel authority = authorityManager.check(step.getSkill(), step.getOperation());
 
-            if (authority == AuthorityLevel.SAFE) {
+            if (authority == AuthorityLevel.SAFE
+                    || (authority == AuthorityLevel.APPROVAL_REQUIRED && approved)) {
 
                 try {
                     Object result = skill.execute(req);
@@ -74,10 +83,50 @@ public class ExecutionPlanExecutor {
                     );
                 }
             }
+
+            if (authority == AuthorityLevel.APPROVAL_REQUIRED && !approved) {
+                PendingExecution pendingExecution = new PendingExecution(plan, i, stepResults);
+                String token = approvalStore.create(pendingExecution);
+                return new ExecutionResult(
+                        false,
+                        stepResults,
+                        true,
+                        token
+                );
+            }
+
+            if (authority == AuthorityLevel.BLOCKED) {
+                stepResults.add(
+                        new StepResult(
+                                step.getSkill(),
+                                step.getOperation(),
+                                false,
+                                "This operation is blocked for your safety."
+                        )
+                );
+
+                return new ExecutionResult(
+                        false,
+                        stepResults,
+                        false,
+                        null
+                );
+            }
         }
         boolean overallSuccess = stepResults.stream()
                 .allMatch(StepResult::isSuccess);
 
-        return new ExecutionResult(overallSuccess, stepResults);
+        return new ExecutionResult(overallSuccess, stepResults, false, null);
     }
+
+    public ExecutionResult resume(PendingExecution pendingExecution) {
+
+        return executeFrom(
+                pendingExecution.plan(),
+                pendingExecution.currentStepIndex(),
+                pendingExecution.stepResults(),
+                true
+        );
+    }
+
 }

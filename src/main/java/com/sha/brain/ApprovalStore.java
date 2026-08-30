@@ -1,6 +1,6 @@
 package com.sha.brain;
 
-import com.sha.brain.dto.PendingAction;
+import com.sha.brain.dto.PendingExecution;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -10,19 +10,19 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class ApprovalStore {
 
-    private final Map<String, PendingAction> pendingActions = new ConcurrentHashMap<>();
+    private final Map<String, PendingExecution> pendingExecutions = new ConcurrentHashMap<>();
 
-    public String create(PendingAction action) {
+    public String create(PendingExecution execution) {
         String token = UUID.randomUUID().toString();
-        pendingActions.put(token, action);
+        pendingExecutions.put(token, execution);
         return token;
     }
 
-    public PendingAction consume(String token) {
-        return pendingActions.remove(token);
+    public PendingExecution consume(String token) {
+        return pendingExecutions.remove(token);
     }
 
     public void remove(String token) {
-        pendingActions.remove(token);
+        pendingExecutions.remove(token);
     }
 }
