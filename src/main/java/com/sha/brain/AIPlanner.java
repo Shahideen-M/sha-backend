@@ -73,9 +73,7 @@ public class AIPlanner implements Planner{
                     ExecutionPlan.class
             );
         } catch (JacksonException e) {
-            throw new RuntimeException(
-                    "Failed to parse execution plan: " + e.getMessage()
-            );
+            return new ExecutionPlan(List.of());
         }
     }
 }

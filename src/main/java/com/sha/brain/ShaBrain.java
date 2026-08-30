@@ -26,6 +26,20 @@ public class ShaBrain {
 
         ExecutionPlan plan = planner.createPlan(userMessage, possibleSkills);
         System.out.println(plan);
+
+        if (plan.getSteps().isEmpty()) {
+            return new ShaBrainResponse(
+                    ShaResponseType.ERROR,
+                    "I don't have an available skill to perform that action.",
+                    null,
+                    null,
+                    null,
+                    null,
+                    false,
+                    ""
+            );
+        }
+
         ExecutionResult result = executor.execute(plan);
         System.out.println(result);
 
