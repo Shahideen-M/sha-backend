@@ -289,10 +289,16 @@ public class BrowserSkill implements Skill<BrowserRequest, BrowserResponse> {
             return;
         }
         playwright = Playwright.create();
-        browser = playwright.chromium().launch(new BrowserType.LaunchOptions()
-                .setHeadless(false)
-                .setChannel("chrome"));
-        context = browser.newContext();
+        browser = playwright.chromium().launch(
+                new BrowserType.LaunchOptions()
+                        .setHeadless(false)
+                        .setChannel("chrome")
+                        .setArgs(List.of("--start-maximized"))
+        );
+        context = browser.newContext(
+                new Browser.NewContextOptions()
+                        .setViewportSize(null)
+        );
         page = context.newPage();
 
     }
