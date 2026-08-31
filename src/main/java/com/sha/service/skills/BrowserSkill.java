@@ -8,8 +8,15 @@ import com.sha.dto.response.BrowserResponse;
 import com.sha.enums.BrowserOperation;
 import com.sha.enums.SkillType;
 import com.sha.service.Skill;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.List;
 
 @Service
@@ -253,28 +260,23 @@ public class BrowserSkill implements Skill<BrowserRequest, BrowserResponse> {
         );
     }
 
-    private Playwright playwright;
-    private Browser browser;
-    private BrowserContext context;
-    private Page page;
-
     private BrowserResponse closeBrowser() {
-        if (page != null) {
-            page.close();
+
+        if (page != null) page.close();
+        if (context != null) context.close();
+        if (browser != null) browser.close();
+        if (playwright != null) playwright.close();
+
+        if (chromeProcess != null && chromeProcess.isAlive()) {
+            chromeProcess.destroy();
         }
-        if (context != null) {
-            context.close();
-        }
-        if (browser != null) {
-            browser.close();
-        }
-        if (playwright != null) {
-            playwright.close();
-        }
+
         page = null;
         context = null;
         browser = null;
         playwright = null;
+        chromeProcess = null;
+
         return new BrowserResponse(
                 true,
                 "Browser closed successfully.",
@@ -284,22 +286,64 @@ public class BrowserSkill implements Skill<BrowserRequest, BrowserResponse> {
         );
     }
 
+    private Playwright playwright;
+    private Browser browser;
+    private BrowserContext context;
+    private Page page;
+    private Process chromeProcess;
+
+    @Value("${chrome.path}")
+    private String chromePath;
+
+    @Value("${chrome.profile.path}")
+    private String chromeProfilePath;
+
+
     private void initializeBrowser() {
         if (playwright != null) {
             return;
         }
+        startChrome();
+        String webSocketUrl;
+        while ((webSocketUrl = getChromeWebSocketUrl()) == null) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("Interrupted while waiting for Chrome."+e);
+            }
+        }
         playwright = Playwright.create();
-        browser = playwright.chromium().launch(
-                new BrowserType.LaunchOptions()
-                        .setHeadless(false)
-                        .setChannel("chrome")
-                        .setArgs(List.of("--start-maximized"))
-        );
-        context = browser.newContext(
-                new Browser.NewContextOptions()
-                        .setViewportSize(null)
-        );
+        browser = playwright.chromium().connectOverCDP(webSocketUrl);
+        context = browser.contexts().getFirst();
         page = context.newPage();
-
     }
+
+    private void startChrome() {
+        try {
+            chromeProcess = new ProcessBuilder(
+                    chromePath,
+                    "--remote-debugging-port=9222",
+                    "--user-data-dir=" + chromeProfilePath,
+                    "--start-maximized"
+            ).start();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to start Chrome. "+e);
+        }
+    }
+
+    private String getChromeWebSocketUrl() {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+
+            String response = restTemplate.getForObject("http://127.0.0.1:9222/json/version", String.class);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(response);
+            return jsonNode.get("webSocketDebuggerUrl").asString();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
 }
