@@ -12,5 +12,6 @@ public enum SkillType {
     MEMORY,
     ISLAM,
     CONTENT_CREATOR,
-    VIDEO_EDITING
+    VIDEO_EDITING,
+    CAREER_ASSISTANT
 }

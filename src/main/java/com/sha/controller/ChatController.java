@@ -76,4 +76,9 @@ public class ChatController {
     public VideoEditorResponse videoEditor(@RequestBody VideoEditorRequest request) {
         return shaService.videoEditor(request);
     }
+
+    @PostMapping("/local/career")
+    public CareerResponse career(@RequestBody CareerRequest request) {
+        return shaService.career(request);
+    }
 }

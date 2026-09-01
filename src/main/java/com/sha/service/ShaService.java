@@ -95,4 +95,12 @@ public class ShaService {
         );
         return skill.execute(request);
     }
+
+    public CareerResponse career(CareerRequest request) {
+        CareerSkill skill = skillRegistry.findSkill(
+                SkillType.CAREER_ASSISTANT,
+                CareerSkill.class
+        );
+        return skill.execute(request);
+    }
 }
