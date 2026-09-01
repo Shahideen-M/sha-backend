@@ -1,8 +1,10 @@
 package com.sha.service.skills;
 
 import com.microsoft.playwright.*;
+import com.microsoft.playwright.options.WaitUntilState;
 import com.sha.brain.dto.OperationPrompt;
 import com.sha.brain.prompt.SkillPrompt;
+import com.sha.dto.data.JobResult;
 import com.sha.dto.request.BrowserRequest;
 import com.sha.dto.response.BrowserResponse;
 import com.sha.enums.BrowserOperation;
@@ -17,6 +19,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -223,8 +226,7 @@ public class BrowserSkill implements Skill<BrowserRequest, BrowserResponse> {
         initializeBrowser();
         String url = request.getUrl();
         if (!url.startsWith("http")) url = "https://" + url;
-        page.navigate(url);
-        page.waitForLoadState();
+        page.navigate(url, new Page.NavigateOptions().setWaitUntil(WaitUntilState.DOMCONTENTLOADED));
         return new BrowserResponse(true, "Opened ", null, request.getUrl(), null);
     }
 
@@ -246,7 +248,7 @@ public class BrowserSkill implements Skill<BrowserRequest, BrowserResponse> {
 
     public BrowserResponse readPage(BrowserRequest request) {
         initializeBrowser();
-        page.waitForLoadState();
+
         String pageTitle = page.title();
         String url = page.url();
         String text = page.evaluate("() => document.body.innerText").toString();
@@ -346,4 +348,33 @@ public class BrowserSkill implements Skill<BrowserRequest, BrowserResponse> {
         }
     }
 
+    public List<JobResult> extractJobs() {
+        initializeBrowser();
+
+        Locator jobsLocator = page.locator("a[href*='/jobs/view/']");
+
+        List<JobResult> jobs = new ArrayList<>();
+
+        for (int i = 0; i < jobsLocator.count(); i++) {
+
+            Locator jobLink = jobsLocator.nth(i);
+            Locator jobCard = jobLink.locator("xpath=ancestor::li");
+
+            String role = jobLink.getAttribute("aria-label");
+            String company = jobCard.locator(".artdeco-entity-lockup__subtitle").innerText();
+            String location = jobCard.locator(".artdeco-entity-lockup__caption").innerText();
+            String href = jobLink.getAttribute("href");
+
+            String cleanUrl = "https://www.linkedin.com" + href.split("\\?")[0];
+
+            JobResult job = new JobResult();
+            job.setRole(role);
+            job.setCompany(company);
+            job.setLocation(location);
+            job.setJobUrl(cleanUrl);
+
+            jobs.add(job);
+        }
+        return jobs;
+    }
 }
