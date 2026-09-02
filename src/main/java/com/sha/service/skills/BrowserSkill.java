@@ -366,12 +366,15 @@ public class BrowserSkill implements Skill<BrowserRequest, BrowserResponse> {
             String href = jobLink.getAttribute("href");
 
             String cleanUrl = "https://www.linkedin.com" + href.split("\\?")[0];
+            boolean remote = location != null && location.toLowerCase().contains("remote");
 
             JobResult job = new JobResult();
             job.setRole(role);
             job.setCompany(company);
             job.setLocation(location);
             job.setJobUrl(cleanUrl);
+            job.setRemote(remote);
+            job.setPlatform("LinkedIn");
 
             jobs.add(job);
         }

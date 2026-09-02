@@ -14,4 +14,7 @@ public class JobResult {
     private String experience;
     private String jobUrl;
     private String description;
+    private Boolean remote;
+    private Boolean virtualInterview;
+    private String platform;
 }
