@@ -13,7 +13,7 @@ import com.sha.dto.response.IslamicResponse;
 import com.sha.dto.response.PrayerTimes;
 import com.sha.enums.FileOperation;
 import com.sha.enums.LaunchOperation;
-import com.sha.enums.SkillType;
+import com.sha.brain.enums.SkillType;
 import com.sha.service.Skill;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;

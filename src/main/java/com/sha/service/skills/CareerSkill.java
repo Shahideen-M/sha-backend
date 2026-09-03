@@ -7,7 +7,7 @@ import com.sha.dto.request.CareerRequest;
 import com.sha.dto.response.BrowserResponse;
 import com.sha.dto.response.CareerResponse;
 import com.sha.enums.BrowserOperation;
-import com.sha.enums.SkillType;
+import com.sha.brain.enums.SkillType;
 import com.sha.service.Skill;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

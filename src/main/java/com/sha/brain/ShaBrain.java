@@ -4,7 +4,7 @@ import com.sha.brain.dto.ExecutionPlan;
 import com.sha.brain.dto.ExecutionResult;
 import com.sha.brain.dto.ShaBrainResponse;
 import com.sha.brain.enums.ShaResponseType;
-import com.sha.enums.SkillType;
+import com.sha.brain.enums.SkillType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;

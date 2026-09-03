@@ -3,7 +3,7 @@ package com.sha.brain;
 import com.sha.brain.dto.ExecutionPlan;
 import com.sha.dto.request.ChatRequest;
 import com.sha.dto.response.ChatResponse;
-import com.sha.enums.SkillType;
+import com.sha.brain.enums.SkillType;
 import com.sha.service.impl.AIRouter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

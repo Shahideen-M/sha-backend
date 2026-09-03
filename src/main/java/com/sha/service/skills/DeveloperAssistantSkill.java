@@ -6,7 +6,7 @@ import com.sha.dto.response.ChatResponse;
 import com.sha.dto.request.DeveloperAssistantRequest;
 import com.sha.dto.response.DeveloperAssistantResponse;
 import com.sha.enums.DeveloperTaskType;
-import com.sha.enums.SkillType;
+import com.sha.brain.enums.SkillType;
 import com.sha.service.Skill;
 import com.sha.service.impl.AIRouter;
 import org.springframework.stereotype.Service;

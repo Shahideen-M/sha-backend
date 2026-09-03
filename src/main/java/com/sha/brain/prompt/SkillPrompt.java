@@ -1,7 +1,7 @@
 package com.sha.brain.prompt;
 
 import com.sha.brain.dto.OperationPrompt;
-import com.sha.enums.SkillType;
+import com.sha.brain.enums.SkillType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

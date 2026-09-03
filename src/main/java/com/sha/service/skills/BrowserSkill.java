@@ -8,7 +8,7 @@ import com.sha.dto.data.JobResult;
 import com.sha.dto.request.BrowserRequest;
 import com.sha.dto.response.BrowserResponse;
 import com.sha.enums.BrowserOperation;
-import com.sha.enums.SkillType;
+import com.sha.brain.enums.SkillType;
 import com.sha.service.Skill;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -17,8 +17,6 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 

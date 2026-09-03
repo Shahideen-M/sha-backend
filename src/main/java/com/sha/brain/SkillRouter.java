@@ -1,7 +1,7 @@
 package com.sha.brain;
 
 import com.sha.brain.prompt.SkillPrompt;
-import com.sha.enums.SkillType;
+import com.sha.brain.enums.SkillType;
 import com.sha.service.Skill;
 import com.sha.service.SkillRegistry;
 import org.springframework.stereotype.Component;

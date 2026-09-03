@@ -5,7 +5,7 @@ import com.sha.dto.request.TradeCalculationRequest;
 import com.sha.dto.response.TradeCalculationResponse;
 import com.sha.dto.request.MaterialRequest;
 import com.sha.dto.response.MaterialResponse;
-import com.sha.enums.SkillType;
+import com.sha.brain.enums.SkillType;
 import com.sha.service.Skill;
 import org.springframework.stereotype.Service;
 

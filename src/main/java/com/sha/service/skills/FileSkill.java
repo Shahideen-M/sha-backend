@@ -5,7 +5,7 @@ import com.sha.brain.prompt.SkillPrompt;
 import com.sha.dto.request.FileRequest;
 import com.sha.dto.response.FileResponse;
 import com.sha.enums.FileOperation;
-import com.sha.enums.SkillType;
+import com.sha.brain.enums.SkillType;
 import com.sha.service.Skill;
 import org.springframework.stereotype.Service;
 

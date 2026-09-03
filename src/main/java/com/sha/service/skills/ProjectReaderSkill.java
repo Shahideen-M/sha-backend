@@ -5,7 +5,7 @@ import com.sha.brain.prompt.SkillPrompt;
 import com.sha.dto.request.ProjectReaderRequest;
 import com.sha.dto.response.ProjectReaderResponse;
 import com.sha.enums.ScanProjectOperation;
-import com.sha.enums.SkillType;
+import com.sha.brain.enums.SkillType;
 import com.sha.service.Skill;
 import org.springframework.stereotype.Service;
 

@@ -5,11 +5,10 @@ import com.sha.brain.prompt.SkillPrompt;
 import com.sha.dto.request.AppLauncherRequest;
 import com.sha.dto.response.AppLauncherResponse;
 import com.sha.enums.LaunchOperation;
-import com.sha.enums.SkillType;
+import com.sha.brain.enums.SkillType;
 import com.sha.service.Skill;
 import org.springframework.stereotype.Service;
 
-import java.awt.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
