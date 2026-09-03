@@ -1,6 +1,6 @@
 package com.sha.brain.dto;
 
-import com.sha.enums.SkillType;
+import com.sha.brain.enums.SkillType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
