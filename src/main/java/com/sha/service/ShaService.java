@@ -1,20 +1,27 @@
 package com.sha.service;
 
+import com.sha.agentsData.agents.contentcreator.ContentCreatorAgent;
+import com.sha.agentsData.agents.contentcreator.VideoEditingAgent;
+import com.sha.agentsData.agents.contentcreator.dto.VideoEditorRequest;
+import com.sha.agentsData.agents.contentcreator.dto.VideoEditorResponse;
+import com.sha.agentsData.enums.AgentType;
+import com.sha.agentsData.service.AgentRegistry;
 import com.sha.dto.request.*;
 import com.sha.dto.response.*;
-import com.sha.enums.SkillType;
-import com.sha.service.impl.AIRouter;
+import com.sha.brain.enums.SkillType;
 import com.sha.service.skills.*;
+import com.sha.agentsData.agents.contentcreator.dto.ContentCreatorRequest;
+import com.sha.agentsData.agents.contentcreator.dto.ContentCreatorResponse;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class ShaService {
 
     private final SkillRegistry skillRegistry;
-
-    public ShaService (SkillRegistry skillRegistry) {
-        this.skillRegistry = skillRegistry;
-    }
+    private final AgentRegistry agentRegistry;
 
     public TradeCalculationResponse calculateTrade(TradeCalculationRequest request) {
         TradeCalculatorSkill skill = skillRegistry.findSkill(
@@ -81,19 +88,19 @@ public class ShaService {
     }
 
     public ContentCreatorResponse content(ContentCreatorRequest request) {
-        ContentCreatorSkill skill = skillRegistry.findSkill(
-                SkillType.CONTENT_CREATOR,
-                ContentCreatorSkill.class
+        ContentCreatorAgent agent = agentRegistry.findAgent(
+                AgentType.CONTENT_CREATOR,
+                ContentCreatorAgent.class
         );
-        return skill.execute(request);
+        return agent.execute(request);
     }
 
     public VideoEditorResponse videoEditor(VideoEditorRequest request) {
-        VideoEditorSkill skill = skillRegistry.findSkill(
-                SkillType.VIDEO_EDITING,
-                VideoEditorSkill.class
+        VideoEditingAgent agent = agentRegistry.findAgent(
+                AgentType.VIDEO_EDITING,
+                VideoEditingAgent.class
         );
-        return skill.execute(request);
+        return agent.execute(request);
     }
 
     public CareerResponse career(CareerRequest request) {
