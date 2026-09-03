@@ -32,9 +32,6 @@ public class ShaBrain {
                     ShaResponseType.ERROR,
                     "I don't have an available skill to perform that action.",
                     null,
-                    null,
-                    null,
-                    null,
                     false,
                     ""
             );
@@ -48,9 +45,6 @@ public class ShaBrain {
                     ShaResponseType.APPROVAL_REQUIRED,
                     "An action requires your approval before execution can continue.",
                     null,
-                    null,
-                    null,
-                    null,
                     true,
                     result.getApprovalToken()
             );
@@ -60,9 +54,6 @@ public class ShaBrain {
             return new ShaBrainResponse(
                     ShaResponseType.ERROR,
                     "Execution failed",
-                    null,
-                    null,
-                    null,
                     objectMapper.valueToTree(result),
                     false,
                     ""
@@ -72,9 +63,6 @@ public class ShaBrain {
         return new ShaBrainResponse(
                 ShaResponseType.EXECUTION_RESULT,
                 "Execution completed.",
-                null,
-                null,
-                null,
                 objectMapper.valueToTree(result),
                 false,
                 ""
