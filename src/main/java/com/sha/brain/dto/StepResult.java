@@ -4,6 +4,7 @@ import com.sha.brain.enums.ExecutionTargetType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import tools.jackson.databind.JsonNode;
 
 @Data
 @AllArgsConstructor
@@ -15,4 +16,5 @@ public class StepResult {
     private String operation;
     private boolean success;
     private String message;
+    private JsonNode data;
 }
