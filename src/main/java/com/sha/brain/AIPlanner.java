@@ -28,10 +28,12 @@ public class AIPlanner implements Planner{
 
         Convert the user's request into an execution plan.
 
-        Use ONLY the exact skill names, operation names,
+        Use ONLY the exact target names, operation names,
         parameter names and structures provided below.
-
-        Do not invent skills, operations or parameters.
+        
+        A target can be either a SKILL or an AGENT.
+        
+        Do not invent target types, targets, operations or parameters.
 
         Return ONLY valid JSON.
 
@@ -40,18 +42,36 @@ public class AIPlanner implements Planner{
         Never return Markdown.
 
         Execution Plan Format:
-
+        Example 1:
         {
           "steps": [
             {
-              "skill": "SKILL_NAME",
+              "type": "SKILL",
+              "target": "ISLAM",
               "operation": "OPERATION_NAME",
               "parameters": {}
             }
           ]
         }
-
+        Example 2:
+        {
+          "steps": [
+            {
+              "type": "AGENT",
+              "target": "CONTENT_CREATOR",
+              "operation": "OPERATION_NAME",
+              "parameters": {}
+            }
+          ]
+        }
+        Rules:
+        - For a Skill, use "type": "SKILL".
+        - For an Agent, use "type": "AGENT".
+        
         """ + promptBuilder.buildSkills(possibleSkills)
+                + "\n\n"
+                +promptBuilder.buildAgents()
+                + "\n\n"
                 + promptBuilder.buildUserMessage(userMessage);
 
         ChatRequest request = new ChatRequest(prompt);
