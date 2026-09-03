@@ -110,7 +110,8 @@ public class ExecutionPlanExecutor {
                                     step.getTarget(),
                                     step.getOperation(),
                                     success,
-                                    message
+                                    message,
+                                    resultJson
                             )
                     );
                 } catch (Exception e) {
@@ -120,7 +121,8 @@ public class ExecutionPlanExecutor {
                                     step.getTarget(),
                                     step.getOperation(),
                                     false,
-                                    e.getMessage()
+                                    e.getMessage(),
+                                    null
                             )
                     );
                 }
@@ -144,7 +146,8 @@ public class ExecutionPlanExecutor {
                                 step.getTarget(),
                                 step.getOperation(),
                                 false,
-                                "This operation is blocked for your safety."
+                                "This operation is blocked for your safety.",
+                                null
                         )
                 );
 
