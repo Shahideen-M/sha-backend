@@ -1,7 +1,12 @@
 package com.sha.brain;
 
+import com.sha.agentsData.enums.AgentType;
+import com.sha.agentsData.service.Agent;
+import com.sha.agentsData.service.AgentRegistry;
 import com.sha.brain.dto.*;
 import com.sha.brain.enums.AuthorityLevel;
+import com.sha.brain.enums.ExecutionTargetType;
+import com.sha.brain.enums.SkillType;
 import com.sha.service.Skill;
 import com.sha.service.SkillRegistry;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +23,7 @@ import java.util.List;
 public class ExecutionPlanExecutor {
 
     private final SkillRegistry skillRegistry;
+    private final AgentRegistry agentRegistry;
     private final AuthorityManager authorityManager;
     private final ApprovalStore approvalStore;
     private final ObjectMapper objectMapper;
@@ -37,10 +43,32 @@ public class ExecutionPlanExecutor {
         for (int i = startIndex; i < plan.getSteps().size(); i++) {
             ExecutionStep step = plan.getSteps().get(i);
 
-            Skill skill = skillRegistry.findSkill(
-                    step.getSkill(),
-                    Skill.class
-            );
+            Object executable;
+            Class<?> requestClass;
+
+            if (step.getType() == ExecutionTargetType.SKILL) {
+
+                Skill skill = skillRegistry.findSkill(
+                        SkillType.valueOf(step.getTarget()),
+                        Skill.class
+                );
+
+                executable = skill;
+                requestClass = skill.getRequestClass();
+
+            } else if (step.getType() == ExecutionTargetType.AGENT) {
+
+                Agent agent = agentRegistry.findAgent(
+                        AgentType.valueOf(step.getTarget()),
+                        Agent.class
+                );
+
+                executable = agent;
+                requestClass = agent.getRequestClass();
+
+            } else {
+                throw new RuntimeException("Unknown execution target type: " + step.getType());
+            }
 
             ObjectNode parameters = step.getParameters() != null
                     ? (ObjectNode) step.getParameters()
@@ -50,23 +78,36 @@ public class ExecutionPlanExecutor {
 
             Object req = objectMapper.convertValue(
                     parameters,
-                    skill.getRequestClass()
+                    requestClass
             );
 
-            AuthorityLevel authority = authorityManager.check(step.getSkill(), step.getOperation());
+            AuthorityLevel authority = authorityManager.check(
+                    step.getType(),
+                    step.getTarget(),
+                    step.getOperation());
 
             if (authority == AuthorityLevel.SAFE
                     || (authority == AuthorityLevel.APPROVAL_REQUIRED && approved)) {
 
                 try {
-                    Object result = skill.execute(req);
+                    Object result;
+
+                    if (executable instanceof  Skill skill) {
+                        result = skill.execute(req);
+                    } else if (executable instanceof Agent agent) {
+                        result = agent.execute(req);
+                    } else {
+                        throw new RuntimeException("Invalid executable.");
+                    }
+
                     JsonNode resultJson = objectMapper.valueToTree(result);
                     boolean success = resultJson.get("success").asBoolean();
                     String message = resultJson.get("message").asString();
 
                     stepResults.add(
                             new StepResult(
-                                    step.getSkill(),
+                                    step.getType(),
+                                    step.getTarget(),
                                     step.getOperation(),
                                     success,
                                     message
@@ -75,7 +116,8 @@ public class ExecutionPlanExecutor {
                 } catch (Exception e) {
                     stepResults.add(
                             new StepResult(
-                                    step.getSkill(),
+                                    step.getType(),
+                                    step.getTarget(),
                                     step.getOperation(),
                                     false,
                                     e.getMessage()
@@ -98,7 +140,8 @@ public class ExecutionPlanExecutor {
             if (authority == AuthorityLevel.BLOCKED) {
                 stepResults.add(
                         new StepResult(
-                                step.getSkill(),
+                                step.getType(),
+                                step.getTarget(),
                                 step.getOperation(),
                                 false,
                                 "This operation is blocked for your safety."
