@@ -12,7 +12,6 @@ import java.util.List;
 public class VideoEditorResponse {
     private boolean success;
     private String message;
-    private String outputPath;
     private Double duration;
     private List<String> operations;
     private VideoAnalysisData analysis;
@@ -20,4 +19,6 @@ public class VideoEditorResponse {
     private NarrationScript narrationScript;
     private boolean requiresApproval;
     private String status;
+    private String longVideoPath;
+    private String shortVideoPath;
 }
