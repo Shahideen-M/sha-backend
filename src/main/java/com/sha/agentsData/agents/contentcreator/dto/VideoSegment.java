@@ -17,4 +17,10 @@ public class VideoSegment {
     private double confidence;
     private String description;
     private String expectedStep;
+
+    public VideoSegment(double startTime, double endTime, String description) {
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.description = description;
+    }
 }
