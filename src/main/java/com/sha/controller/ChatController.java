@@ -10,6 +10,7 @@ import com.sha.agentsData.agents.contentcreator.dto.VideoEditorRequest;
 import com.sha.agentsData.agents.contentcreator.dto.VideoEditorResponse;
 
 import com.sha.service.ShaService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,15 +21,11 @@ import org.springframework.web.bind.annotation.RestController;
         "http://localhost:5173",
         "https://sha-ai.netlify.app"
 })
+@RequiredArgsConstructor
 public class ChatController {
 
     private final ShaService shaService;
     private final ShaBrain shaBrain;
-
-    public ChatController(ShaService shaService, ShaBrain shaBrain) {
-        this.shaService = shaService;
-        this.shaBrain = shaBrain;
-    }
 
     @PostMapping("/chat")
     public ShaBrainResponse message(@RequestBody ChatRequest request) {
