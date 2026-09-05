@@ -1,7 +1,9 @@
 package com.sha.service.impl;
 
 import com.sha.dto.request.ChatRequest;
+import com.sha.dto.request.ImageAnalysisRequest;
 import com.sha.dto.response.ChatResponse;
+import com.sha.dto.response.ImageAnalysisResponse;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -21,5 +23,9 @@ public class AIRouter {
 
     public ChatResponse geminiChat(ChatRequest request) {
         return geminiAIService.chat(request);
+    }
+
+    public ImageAnalysisResponse geminiAnalyzeImages(ImageAnalysisRequest request) {
+        return geminiAIService.analyzeImages(request);
     }
 }
