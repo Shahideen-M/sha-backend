@@ -10,7 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class VideoAnalysisData {
-    private double duration;
+    private Double duration;
     private String resolution;
     private String codec;
     private List<VideoSegment> segments;
