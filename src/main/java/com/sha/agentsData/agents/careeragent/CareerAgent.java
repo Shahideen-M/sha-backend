@@ -1,4 +1,4 @@
-package com.sha.service.skills;
+package com.sha.agentsData.agents.careeragent;
 
 import com.sha.brain.prompt.SkillPrompt;
 import com.sha.agentsData.agents.data.JobResult;
@@ -9,6 +9,7 @@ import com.sha.agentsData.agents.careeragent.dto.CareerResponse;
 import com.sha.enums.BrowserOperation;
 import com.sha.brain.enums.SkillType;
 import com.sha.service.Skill;
+import com.sha.service.skills.BrowserSkill;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +19,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class CareerSkill implements Skill<CareerRequest, CareerResponse> {
+public class CareerAgent implements Skill<CareerRequest, CareerResponse> {
 
     private final BrowserSkill browserSkill;
 

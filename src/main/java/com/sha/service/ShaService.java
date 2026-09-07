@@ -1,5 +1,6 @@
 package com.sha.service;
 
+import com.sha.agentsData.agents.careeragent.CareerAgent;
 import com.sha.agentsData.agents.careeragent.dto.CareerRequest;
 import com.sha.agentsData.agents.careeragent.dto.CareerResponse;
 import com.sha.agentsData.agents.contentcreator.ContentCreatorAgent;
@@ -106,9 +107,9 @@ public class ShaService {
     }
 
     public CareerResponse career(CareerRequest request) {
-        CareerSkill skill = skillRegistry.findSkill(
+        CareerAgent skill = skillRegistry.findSkill(
                 SkillType.CAREER_ASSISTANT,
-                CareerSkill.class
+                CareerAgent.class
         );
         return skill.execute(request);
     }
