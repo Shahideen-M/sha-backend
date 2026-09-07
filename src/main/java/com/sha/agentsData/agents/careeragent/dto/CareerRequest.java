@@ -1,6 +1,6 @@
 package com.sha.agentsData.agents.careeragent.dto;
 
-import com.sha.enums.CareerOperation;
+import com.sha.agentsData.agents.careeragent.enums.CareerOperation;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
