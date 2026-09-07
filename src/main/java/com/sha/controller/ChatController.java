@@ -1,5 +1,7 @@
 package com.sha.controller;
 
+import com.sha.agentsData.agents.careeragent.dto.CareerRequest;
+import com.sha.agentsData.agents.careeragent.dto.CareerResponse;
 import com.sha.brain.ShaBrain;
 import com.sha.brain.dto.ShaBrainResponse;
 import com.sha.dto.request.*;

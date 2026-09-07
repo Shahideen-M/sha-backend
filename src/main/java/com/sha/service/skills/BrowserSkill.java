@@ -4,7 +4,7 @@ import com.microsoft.playwright.*;
 import com.microsoft.playwright.options.WaitUntilState;
 import com.sha.brain.dto.OperationPrompt;
 import com.sha.brain.prompt.SkillPrompt;
-import com.sha.dto.data.JobResult;
+import com.sha.agentsData.agents.data.JobResult;
 import com.sha.dto.request.BrowserRequest;
 import com.sha.dto.response.BrowserResponse;
 import com.sha.enums.BrowserOperation;

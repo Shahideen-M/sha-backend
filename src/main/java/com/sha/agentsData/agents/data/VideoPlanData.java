@@ -1,4 +1,4 @@
-package com.sha.dto.data;
+package com.sha.agentsData.agents.data;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

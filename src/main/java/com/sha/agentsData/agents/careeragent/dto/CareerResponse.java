@@ -1,6 +1,6 @@
-package com.sha.dto.response;
+package com.sha.agentsData.agents.careeragent.dto;
 
-import com.sha.dto.data.JobResult;
+import com.sha.agentsData.agents.data.JobResult;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

@@ -1,5 +1,7 @@
 package com.sha.service;
 
+import com.sha.agentsData.agents.careeragent.dto.CareerRequest;
+import com.sha.agentsData.agents.careeragent.dto.CareerResponse;
 import com.sha.agentsData.agents.contentcreator.ContentCreatorAgent;
 import com.sha.agentsData.agents.contentcreator.VideoEditingAgent;
 import com.sha.agentsData.agents.contentcreator.dto.VideoEditorRequest;

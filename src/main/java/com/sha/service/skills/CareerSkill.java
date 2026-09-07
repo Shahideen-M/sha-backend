@@ -1,11 +1,11 @@
 package com.sha.service.skills;
 
 import com.sha.brain.prompt.SkillPrompt;
-import com.sha.dto.data.JobResult;
+import com.sha.agentsData.agents.data.JobResult;
 import com.sha.dto.request.BrowserRequest;
-import com.sha.dto.request.CareerRequest;
+import com.sha.agentsData.agents.careeragent.dto.CareerRequest;
 import com.sha.dto.response.BrowserResponse;
-import com.sha.dto.response.CareerResponse;
+import com.sha.agentsData.agents.careeragent.dto.CareerResponse;
 import com.sha.enums.BrowserOperation;
 import com.sha.brain.enums.SkillType;
 import com.sha.service.Skill;

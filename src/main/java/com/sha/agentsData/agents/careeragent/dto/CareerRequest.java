@@ -1,4 +1,4 @@
-package com.sha.dto.request;
+package com.sha.agentsData.agents.careeragent.dto;
 
 import com.sha.enums.CareerOperation;
 import lombok.AllArgsConstructor;
