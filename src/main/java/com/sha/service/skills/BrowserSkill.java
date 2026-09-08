@@ -34,6 +34,7 @@ public class BrowserSkill implements Skill<BrowserRequest, BrowserResponse> {
 
             case GET_TITLE -> getTitle();
             case GET_URL -> getUrl();
+            case GET_PAGE_HTML -> getPageHtml();
 
             case BACK -> goBack();
             case FORWARD -> goForward();
@@ -131,6 +132,18 @@ public class BrowserSkill implements Skill<BrowserRequest, BrowserResponse> {
                 page.url(),
                 null,
                 null
+        );
+    }
+
+    public BrowserResponse getPageHtml() {
+        initializeBrowser();
+        String content = page.content();
+        return new BrowserResponse(
+                true,
+                "Page content is extracted successfully",
+                page.title(),
+                page.url(),
+                content
         );
     }
 

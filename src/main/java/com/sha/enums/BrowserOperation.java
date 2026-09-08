@@ -6,6 +6,7 @@ public enum BrowserOperation {
 
     GET_TITLE,
     GET_URL,
+    GET_PAGE_HTML,
 
     BACK,
     FORWARD,
