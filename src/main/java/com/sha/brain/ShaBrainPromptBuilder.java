@@ -1,13 +1,13 @@
 package com.sha.brain;
 
-import com.sha.agentsData.service.Agent;
-import com.sha.agentsData.service.AgentRegistry;
+import com.sha.agents.service.Agent;
+import com.sha.agents.service.AgentRegistry;
 import com.sha.brain.dto.OperationPrompt;
 import com.sha.brain.prompt.AgentPrompt;
 import com.sha.brain.prompt.SkillPrompt;
 import com.sha.brain.enums.SkillType;
-import com.sha.service.Skill;
-import com.sha.service.SkillRegistry;
+import com.sha.skills.Skill;
+import com.sha.skills.SkillRegistry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

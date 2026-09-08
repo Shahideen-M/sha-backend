@@ -1,17 +1,17 @@
 package com.sha.controller;
 
-import com.sha.agentsData.agents.careeragent.dto.CareerRequest;
-import com.sha.agentsData.agents.careeragent.dto.CareerResponse;
+import com.sha.agents.careeragent.dto.CareerRequest;
+import com.sha.agents.careeragent.dto.CareerResponse;
 import com.sha.brain.ShaBrain;
 import com.sha.brain.dto.ShaBrainResponse;
-import com.sha.dto.request.*;
-import com.sha.dto.response.*;
-import com.sha.agentsData.agents.contentcreator.dto.ContentCreatorRequest;
-import com.sha.agentsData.agents.contentcreator.dto.ContentCreatorResponse;
-import com.sha.agentsData.agents.contentcreator.dto.VideoEditorRequest;
-import com.sha.agentsData.agents.contentcreator.dto.VideoEditorResponse;
+import com.sha.agents.contentcreator.dto.ContentCreatorRequest;
+import com.sha.agents.contentcreator.dto.ContentCreatorResponse;
+import com.sha.agents.contentcreator.dto.VideoEditorRequest;
+import com.sha.agents.contentcreator.dto.VideoEditorResponse;
 
-import com.sha.service.ShaService;
+import com.sha.skills.service.ShaService;
+import com.sha.skills.dto.request.*;
+import com.sha.skills.dto.response.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;

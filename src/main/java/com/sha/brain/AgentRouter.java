@@ -1,8 +1,8 @@
 package com.sha.brain;
 
-import com.sha.agentsData.enums.AgentType;
-import com.sha.agentsData.service.Agent;
-import com.sha.agentsData.service.AgentRegistry;
+import com.sha.agents.enums.AgentType;
+import com.sha.agents.service.Agent;
+import com.sha.agents.service.AgentRegistry;
 import com.sha.brain.prompt.AgentPrompt;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

@@ -1,6 +1,6 @@
 package com.sha.brain.prompt;
 
-import com.sha.agentsData.enums.AgentType;
+import com.sha.agents.enums.AgentType;
 import com.sha.brain.dto.OperationPrompt;
 import lombok.AllArgsConstructor;
 import lombok.Data;
