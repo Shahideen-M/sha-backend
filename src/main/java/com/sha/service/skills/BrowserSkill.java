@@ -345,37 +345,4 @@ public class BrowserSkill implements Skill<BrowserRequest, BrowserResponse> {
             return null;
         }
     }
-
-    public List<JobResult> extractJobs() {
-        initializeBrowser();
-
-        Locator jobsLocator = page.locator("a[href*='/jobs/view/']");
-
-        List<JobResult> jobs = new ArrayList<>();
-
-        for (int i = 0; i < jobsLocator.count(); i++) {
-
-            Locator jobLink = jobsLocator.nth(i);
-            Locator jobCard = jobLink.locator("xpath=ancestor::li");
-
-            String role = jobLink.getAttribute("aria-label");
-            String company = jobCard.locator(".artdeco-entity-lockup__subtitle").innerText();
-            String location = jobCard.locator(".artdeco-entity-lockup__caption").innerText();
-            String href = jobLink.getAttribute("href");
-
-            String cleanUrl = "https://www.linkedin.com" + href.split("\\?")[0];
-            boolean remote = location != null && location.toLowerCase().contains("remote");
-
-            JobResult job = new JobResult();
-            job.setRole(role);
-            job.setCompany(company);
-            job.setLocation(location);
-            job.setJobUrl(cleanUrl);
-            job.setRemote(remote);
-            job.setPlatform("LinkedIn");
-
-            jobs.add(job);
-        }
-        return jobs;
-    }
 }
