@@ -1,14 +1,14 @@
 package com.sha.agentsData.agents.careeragent;
 
-import com.sha.brain.prompt.SkillPrompt;
+import com.sha.agentsData.enums.AgentType;
+import com.sha.agentsData.service.Agent;
+import com.sha.brain.prompt.AgentPrompt;
 import com.sha.agentsData.agents.data.JobResult;
 import com.sha.dto.request.BrowserRequest;
 import com.sha.agentsData.agents.careeragent.dto.CareerRequest;
 import com.sha.dto.response.BrowserResponse;
 import com.sha.agentsData.agents.careeragent.dto.CareerResponse;
 import com.sha.enums.BrowserOperation;
-import com.sha.brain.enums.SkillType;
-import com.sha.service.Skill;
 import com.sha.service.skills.BrowserSkill;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,13 +19,13 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class CareerAgent implements Skill<CareerRequest, CareerResponse> {
+public class CareerAgent implements Agent<CareerRequest, CareerResponse> {
 
     private final BrowserSkill browserSkill;
 
     @Override
-    public SkillType getType() {
-        return SkillType.CAREER_ASSISTANT;
+    public AgentType getType() {
+        return AgentType.CAREER;
     }
 
     @Override
@@ -46,7 +46,7 @@ public class CareerAgent implements Skill<CareerRequest, CareerResponse> {
     }
 
     @Override
-    public SkillPrompt<?> describe() {
+    public AgentPrompt<?> describe() {
         return null;
     }
 
