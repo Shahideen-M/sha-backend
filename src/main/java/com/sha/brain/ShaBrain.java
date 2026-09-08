@@ -5,65 +5,48 @@ import com.sha.brain.dto.ExecutionResult;
 import com.sha.brain.dto.ShaBrainResponse;
 import com.sha.brain.enums.ShaResponseType;
 import com.sha.skills.enums.SkillType;
+import com.sha.skills.tools.FileTools;
+import com.sha.skills.tools.IslamicTools;
 import lombok.RequiredArgsConstructor;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class ShaBrain {
 
-    private final SkillRouter skillRouter;
-    private final Planner planner;
-    private final ExecutionPlanExecutor executor;
-    private final ObjectMapper objectMapper;
+    private final ChatClient chatClient;
+    private final FileTools fileTools;
+    private final IslamicTools islamicTools;
+
+    public ShaBrain(@Qualifier("geminiChatClient") ChatClient chatClient,
+                    FileTools fileTools, IslamicTools islamicTools) {
+        this.chatClient = chatClient;
+        this.fileTools = fileTools;
+        this.islamicTools = islamicTools;
+    }
 
     public ShaBrainResponse process(String userMessage) {
 
-        List<SkillType> possibleSkills = skillRouter.findPossibleSkills(userMessage);
+        String response = chatClient.prompt()
+                .system("You are Sha, a helpful AI assistant.")
+                .user(userMessage)
+                .advisors(advisor -> {
+                    advisor.param(ChatMemory.CONVERSATION_ID, "default");
+                })
+                .tools(fileTools, islamicTools)
+                .call()
+                .content();
 
-        ExecutionPlan plan = planner.createPlan(userMessage, possibleSkills);
-        System.out.println(plan);
-
-        if (plan.getSteps().isEmpty()) {
-            return new ShaBrainResponse(
-                    ShaResponseType.ERROR,
-                    "I don't have an available skill to perform that action.",
-                    null,
-                    false,
-                    ""
-            );
-        }
-
-        ExecutionResult result = executor.execute(plan);
-        System.out.println(result);
-
-        if (result.isApprovalRequired()) {
-            return new ShaBrainResponse(
-                    ShaResponseType.APPROVAL_REQUIRED,
-                    "An action requires your approval before execution can continue.",
-                    null,
-                    true,
-                    result.getApprovalToken()
-            );
-        }
-
-        if (!result.isSuccess()) {
-            return new ShaBrainResponse(
-                    ShaResponseType.ERROR,
-                    "Execution failed",
-                    objectMapper.valueToTree(result),
-                    false,
-                    ""
-            );
-        }
-
+        System.out.println(response);
         return new ShaBrainResponse(
                 ShaResponseType.EXECUTION_RESULT,
-                "Execution completed.",
-                objectMapper.valueToTree(result),
+                response,
+                null,
                 false,
                 ""
         );

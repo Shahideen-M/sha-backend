@@ -5,6 +5,7 @@ import com.sha.skills.dto.request.ImageAnalysisRequest;
 import com.sha.skills.dto.response.ChatResponse;
 import com.sha.skills.dto.response.ImageAnalysisResponse;
 import com.sha.skills.service.AIService;
+import com.sha.skills.tools.FileTools;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -17,9 +18,11 @@ import org.springframework.util.MimeTypeUtils;
 public class GeminiAIService implements AIService {
 
     private final ChatClient chatClient;
+    private final FileTools fileTools;
 
-    public GeminiAIService(@Qualifier("geminiChatClient") ChatClient chatClient) {
+    public GeminiAIService(@Qualifier("geminiChatClient") ChatClient chatClient, FileTools fileTools) {
         this.chatClient = chatClient;
+        this.fileTools = fileTools;
     }
 
     @Value("${sha.ai.system-prompt}")
@@ -30,6 +33,7 @@ public class GeminiAIService implements AIService {
         String aiResponse =  chatClient.prompt()
                 .system(systemPrompt)
                 .user(chatRequest.getMessage())
+                .tools(fileTools)
                 .advisors(advisor ->
                         advisor.param(ChatMemory.CONVERSATION_ID, "default")
                 )
