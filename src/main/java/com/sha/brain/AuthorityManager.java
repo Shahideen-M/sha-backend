@@ -2,7 +2,6 @@ package com.sha.brain;
 
 import com.sha.brain.enums.AuthorityLevel;
 import com.sha.brain.enums.ExecutionTargetType;
-import com.sha.brain.enums.SkillType;
 import org.springframework.stereotype.Service;
 
 @Service

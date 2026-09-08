@@ -7,7 +7,7 @@ import com.sha.brain.prompt.SkillPrompt;
 import com.sha.skills.dto.request.BrowserRequest;
 import com.sha.skills.dto.response.BrowserResponse;
 import com.sha.skills.enums.BrowserOperation;
-import com.sha.brain.enums.SkillType;
+import com.sha.skills.enums.SkillType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;

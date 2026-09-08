@@ -2,7 +2,6 @@ package com.sha.brain.dto;
 
 import tools.jackson.databind.JsonNode;
 import com.sha.brain.enums.ShaResponseType;
-import com.sha.brain.enums.SkillType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

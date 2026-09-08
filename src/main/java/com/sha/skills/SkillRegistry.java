@@ -1,6 +1,6 @@
 package com.sha.skills;
 
-import com.sha.brain.enums.SkillType;
+import com.sha.skills.enums.SkillType;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

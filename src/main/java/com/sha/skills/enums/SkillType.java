@@ -1,4 +1,4 @@
-package com.sha.brain.enums;
+package com.sha.skills.enums;
 
 public enum SkillType {
     TRADE_CALCULATOR,

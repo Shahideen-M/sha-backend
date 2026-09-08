@@ -9,7 +9,7 @@ import com.sha.agents.contentcreator.dto.VideoEditorRequest;
 import com.sha.agents.contentcreator.dto.VideoEditorResponse;
 import com.sha.agents.enums.AgentType;
 import com.sha.agents.service.AgentRegistry;
-import com.sha.brain.enums.SkillType;
+import com.sha.skills.enums.SkillType;
 import com.sha.agents.contentcreator.dto.ContentCreatorRequest;
 import com.sha.agents.contentcreator.dto.ContentCreatorResponse;
 

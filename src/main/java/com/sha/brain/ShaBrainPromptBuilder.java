@@ -5,7 +5,7 @@ import com.sha.agents.service.AgentRegistry;
 import com.sha.brain.dto.OperationPrompt;
 import com.sha.brain.prompt.AgentPrompt;
 import com.sha.brain.prompt.SkillPrompt;
-import com.sha.brain.enums.SkillType;
+import com.sha.skills.enums.SkillType;
 import com.sha.skills.Skill;
 import com.sha.skills.SkillRegistry;
 import lombok.RequiredArgsConstructor;

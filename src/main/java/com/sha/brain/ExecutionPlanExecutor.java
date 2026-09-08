@@ -6,7 +6,7 @@ import com.sha.agents.service.AgentRegistry;
 import com.sha.brain.dto.*;
 import com.sha.brain.enums.AuthorityLevel;
 import com.sha.brain.enums.ExecutionTargetType;
-import com.sha.brain.enums.SkillType;
+import com.sha.skills.enums.SkillType;
 import com.sha.skills.Skill;
 import com.sha.skills.SkillRegistry;
 import lombok.RequiredArgsConstructor;

@@ -1,7 +1,7 @@
 package com.sha.skills;
 
 import com.sha.brain.prompt.SkillPrompt;
-import com.sha.brain.enums.SkillType;
+import com.sha.skills.enums.SkillType;
 
 public interface Skill<REQ, RES> {
 

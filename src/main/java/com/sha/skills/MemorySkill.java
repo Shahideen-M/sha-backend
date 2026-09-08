@@ -6,7 +6,7 @@ import com.sha.skills.dto.request.MemoryRequest;
 import com.sha.skills.dto.response.MemoryResponse;
 import com.sha.skills.entity.Memory;
 import com.sha.skills.enums.MemoryOperation;
-import com.sha.brain.enums.SkillType;
+import com.sha.skills.enums.SkillType;
 import com.sha.skills.service.MemoryService;
 import org.springframework.stereotype.Service;
 
