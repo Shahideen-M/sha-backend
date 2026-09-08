@@ -107,10 +107,10 @@ public class ShaService {
     }
 
     public CareerResponse career(CareerRequest request) {
-        CareerAgent skill = skillRegistry.findSkill(
-                SkillType.CAREER_ASSISTANT,
+        CareerAgent agent = agentRegistry.findAgent(
+                AgentType.CAREER,
                 CareerAgent.class
         );
-        return skill.execute(request);
+        return agent.execute(request);
     }
 }
