@@ -1,7 +1,5 @@
 package com.sha.brain;
 
-import com.sha.brain.dto.ExecutionPlan;
-import com.sha.brain.dto.ExecutionResult;
 import com.sha.brain.dto.ShaBrainResponse;
 import com.sha.brain.enums.ShaResponseType;
 import com.sha.skills.enums.SkillType;
