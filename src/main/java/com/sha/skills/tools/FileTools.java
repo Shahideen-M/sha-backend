@@ -50,7 +50,7 @@ public class FileTools {
         switch (auth) {
             case SAFE: return fileSkill.executeTyped(request);
             case APPROVAL_REQUIRED:
-                String token = approvalService.requestApproval("");
+                String token = approvalService.requestApproval(" ");
             case BLOCKED -> new FileResponse(
                     false,
                     "Action Blocked"
