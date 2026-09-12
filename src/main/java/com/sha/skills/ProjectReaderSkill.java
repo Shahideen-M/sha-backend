@@ -1,6 +1,7 @@
 package com.sha.skills;
 
 import com.sha.brain.dto.OperationPrompt;
+import com.sha.brain.enums.AuthorityLevel;
 import com.sha.brain.prompt.SkillPrompt;
 import com.sha.skills.dto.request.ProjectReaderRequest;
 import com.sha.skills.dto.response.ProjectReaderResponse;
@@ -98,6 +99,11 @@ public class ProjectReaderSkill implements Skill<ProjectReaderRequest, ProjectRe
                         )
                 )
         );
+    }
+
+    @Override
+    public AuthorityLevel getAuthority(Object request) {
+        return null;
     }
 
     public ProjectReaderResponse scanProject(ProjectReaderRequest request) {

@@ -1,5 +1,9 @@
 package com.sha.brain.controller;
 
+import com.sha.brain.ApprovalService;
+import com.sha.brain.PendingApproval;
+import com.sha.skills.FileSkill;
+import com.sha.skills.dto.request.FileRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,13 +14,13 @@ public class ApprovalController {
 
     private final ApprovalService approvalService;
 
-    @PostMapping("/approve")
-    public Object approve(@RequestParam String token) {
-        return approvalService.approve(token);
+    @PostMapping("/approve/{id}")
+    public Object approve(@PathVariable String id) {
+        return approvalService.approve(id);
     }
 
-    @PostMapping("/reject")
-    public void reject(@RequestParam String token) {
-        approvalService.reject(token);
+    @PostMapping("/reject/{id}")
+    public Object reject(@PathVariable String id) {
+        return approvalService.reject(id);
     }
 }

@@ -73,7 +73,6 @@
             <version>1.61.0</version>
             <scope>compile</scope>
         </dependency>
-
     </dependencies>
 
     <build>

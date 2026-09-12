@@ -1,6 +1,7 @@
 package com.sha.skills;
 
 import com.sha.brain.dto.OperationPrompt;
+import com.sha.brain.enums.AuthorityLevel;
 import com.sha.brain.prompt.SkillPrompt;
 import com.sha.skills.dto.request.FileRequest;
 import com.sha.skills.dto.response.FileResponse;
@@ -170,6 +171,18 @@ public class FileSkill implements Skill<FileRequest, FileResponse> {
                         )
                 )
         );
+    }
+
+    @Override
+    public AuthorityLevel getAuthority(Object request) {
+
+        FileRequest fileRequest = (FileRequest) request;
+
+        return switch (fileRequest.getOperation()) {
+            case READ, LIST, SEARCH -> AuthorityLevel.SAFE;
+            case WRITE, UPDATE, COPY, RENAME -> AuthorityLevel.APPROVAL_REQUIRED;
+            case DELETE -> AuthorityLevel.BLOCKED;
+        };
     }
 
     public FileResponse read(FileRequest request) {

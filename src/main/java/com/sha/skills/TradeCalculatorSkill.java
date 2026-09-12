@@ -1,5 +1,6 @@
 package com.sha.skills;
 
+import com.sha.brain.enums.AuthorityLevel;
 import com.sha.brain.prompt.SkillPrompt;
 import com.sha.skills.dto.request.TradeCalculationRequest;
 import com.sha.skills.dto.response.TradeCalculationResponse;
@@ -88,6 +89,11 @@ public class TradeCalculatorSkill implements Skill<TradeCalculationRequest, Trad
                 "calculator",
                 "calculate"
         );
+        return null;
+    }
+
+    @Override
+    public AuthorityLevel getAuthority(Object request) {
         return null;
     }
 

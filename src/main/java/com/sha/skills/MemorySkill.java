@@ -1,6 +1,7 @@
 package com.sha.skills;
 
 import com.sha.brain.dto.OperationPrompt;
+import com.sha.brain.enums.AuthorityLevel;
 import com.sha.brain.prompt.SkillPrompt;
 import com.sha.skills.dto.request.MemoryRequest;
 import com.sha.skills.dto.response.MemoryResponse;
@@ -112,6 +113,11 @@ public class MemorySkill implements Skill<MemoryRequest, MemoryResponse> {
                         )
                 )
         );
+    }
+
+    @Override
+    public AuthorityLevel getAuthority(Object request) {
+        return null;
     }
 
     public MemoryResponse save(MemoryRequest request) {

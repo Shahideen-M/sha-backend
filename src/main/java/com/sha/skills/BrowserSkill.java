@@ -3,6 +3,7 @@ package com.sha.skills;
 import com.microsoft.playwright.*;
 import com.microsoft.playwright.options.WaitUntilState;
 import com.sha.brain.dto.OperationPrompt;
+import com.sha.brain.enums.AuthorityLevel;
 import com.sha.brain.prompt.SkillPrompt;
 import com.sha.skills.dto.request.BrowserRequest;
 import com.sha.skills.dto.response.BrowserResponse;
@@ -110,6 +111,11 @@ public class BrowserSkill implements Skill<BrowserRequest, BrowserResponse> {
                         )
                 )
         );
+    }
+
+    @Override
+    public AuthorityLevel getAuthority(Object request) {
+        return null;
     }
 
     public BrowserResponse getTitle() {

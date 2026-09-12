@@ -1,6 +1,7 @@
 package com.sha.skills;
 
 import com.sha.brain.dto.OperationPrompt;
+import com.sha.brain.enums.AuthorityLevel;
 import com.sha.brain.prompt.SkillPrompt;
 import com.sha.skills.dto.request.AppLauncherRequest;
 import com.sha.skills.dto.response.AppLauncherResponse;
@@ -94,6 +95,11 @@ public class AppLauncherSkill implements Skill<AppLauncherRequest, AppLauncherRe
                         )
                 )
         );
+    }
+
+    @Override
+    public AuthorityLevel getAuthority(Object request) {
+        return null;
     }
 
     public AppLauncherResponse openApp(AppLauncherRequest request) {

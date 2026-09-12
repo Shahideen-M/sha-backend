@@ -1,6 +1,7 @@
 package com.sha.skills;
 
 import com.sha.brain.dto.OperationPrompt;
+import com.sha.brain.enums.AuthorityLevel;
 import com.sha.skills.enums.IslamicOperation;
 import tools.jackson.databind.JsonNode;
 import com.sha.brain.prompt.SkillPrompt;
@@ -139,6 +140,15 @@ public class IslamicSkill implements Skill<IslamicRequest, IslamicResponse> {
                         )
                 )
         );
+    }
+
+    @Override
+    public AuthorityLevel getAuthority(Object request) {
+        IslamicRequest islamicRequest = (IslamicRequest) request;
+
+        return switch (islamicRequest.getOperation()) {
+            case GET_SURAH, PLAY_SURAH, SURAH_LIST, PRAYER_TIMES, GET_PRAYER -> AuthorityLevel.SAFE;
+        };
     }
 
     public IslamicResponse prayerTimes(IslamicRequest request) {

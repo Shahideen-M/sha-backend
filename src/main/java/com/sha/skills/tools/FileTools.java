@@ -1,30 +1,61 @@
 package com.sha.skills.tools;
 
-import com.sha.brain.AuthorityManager;
-import com.sha.brain.enums.AuthorityLevel;
-import com.sha.brain.enums.ExecutionTargetType;
 import com.sha.skills.FileSkill;
+import com.sha.skills.Skill;
 import com.sha.skills.dto.request.FileRequest;
 import com.sha.skills.dto.response.FileResponse;
 import com.sha.skills.enums.FileOperation;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
+@Getter
 @Component
 @RequiredArgsConstructor
-public class FileTools {
+public class FileTools implements ShaTool {
 
     private final FileSkill fileSkill;
-    private final AuthorityManager authorityManager;
-    private final ApprovalService approvalService;
+    private final ObjectMapper objectMapper;
+
+
+    @Override
+    public Skill<?, ?> getSkill() {
+        return fileSkill;
+    }
+
+    @Override
+    public Object createRequest(String toolName, String arguments) {
+
+        FileRequest request = new FileRequest();
+        var json = objectMapper.readTree(arguments);
+
+        switch (toolName) {
+            case "listFiles" -> {
+                request.setPath(json.get("path").asString());
+                request.setOperation(FileOperation.LIST);
+            }
+            case "deleteFile" -> {
+                request.setPath(json.get("path").asString());
+                request.setOperation(FileOperation.DELETE);
+            }
+            case "writeFile" -> {
+                request.setPath(json.get("path").asString());
+                request.setContent(json.get("content").asString());
+                request.setOperation(FileOperation.WRITE);
+            }
+            default -> throw new IllegalArgumentException("Unknown FileTools operation: " + toolName);
+        }
+        return request;
+    }
 
     @Tool(description = "List files and directories at the given path")
     public FileResponse listFiles(String path) {
         FileRequest request = new FileRequest();
         request.setPath(path);
         request.setOperation(FileOperation.LIST);
-        return authority(request);
+        return fileSkill.execute(request);
     }
 
     @Tool(description = "Deleting a file at the given path")
@@ -32,7 +63,7 @@ public class FileTools {
         FileRequest request = new FileRequest();
         request.setPath(path);
         request.setOperation(FileOperation.DELETE);
-        return authority(request);
+        return fileSkill.execute(request);
     }
 
     @Tool(description = "Write content to a file at the given path")
@@ -41,20 +72,6 @@ public class FileTools {
         request.setPath(path);
         request.setContent(content);
         request.setOperation(FileOperation.WRITE);
-        return authority(request);
-    }
-
-    private FileResponse authority(FileRequest request) {
-        AuthorityLevel auth = authorityManager.check(ExecutionTargetType.SKILL, "FILE", request.getOperation());
-
-        switch (auth) {
-            case SAFE: return fileSkill.executeTyped(request);
-            case APPROVAL_REQUIRED:
-                String token = approvalService.requestApproval(" ");
-            case BLOCKED -> new FileResponse(
-                    false,
-                    "Action Blocked"
-            );
-        };
+        return fileSkill.execute(request);
     }
 }

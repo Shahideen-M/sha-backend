@@ -1,5 +1,6 @@
 package com.sha.skills;
 
+import com.sha.brain.enums.AuthorityLevel;
 import com.sha.brain.prompt.SkillPrompt;
 import com.sha.skills.dto.request.ChatRequest;
 import com.sha.skills.dto.response.ChatResponse;
@@ -199,5 +200,10 @@ public class DeveloperAssistantSkill implements Skill<DeveloperAssistantRequest,
                 ),
                 List.of()
         );
+    }
+
+    @Override
+    public AuthorityLevel getAuthority(Object request) {
+        return null;
     }
 }
