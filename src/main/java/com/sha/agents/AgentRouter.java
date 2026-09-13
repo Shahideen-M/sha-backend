@@ -1,4 +1,4 @@
-package com.sha.brain;
+package com.sha.agents;
 
 import com.sha.agents.enums.AgentType;
 import com.sha.agents.service.Agent;
