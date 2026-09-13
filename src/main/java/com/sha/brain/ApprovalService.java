@@ -12,10 +12,21 @@ public class ApprovalService {
 
     private final Map<String, PendingApproval> pendingApprovals = new ConcurrentHashMap<>();
 
-    public String create(Skill<?, ?> skill, Object request) {
+    public String create(
+            String toolName,
+            String userMessage,
+            Skill<?, ?> skill,
+            Object request
+    ) {
         String id = UUID.randomUUID().toString();
-
-        pendingApprovals.put(id, new PendingApproval(id, skill, request));
+        PendingApproval approval = new PendingApproval(
+                id,
+                toolName,
+                userMessage,
+                skill,
+                request
+        );
+        pendingApprovals.put(id, approval);
         return id;
     }
 
@@ -23,13 +34,13 @@ public class ApprovalService {
         return pendingApprovals.get(id);
     }
 
-    public Object approve(String id) {
+    public ApprovedAction approve(String id) {
 
         PendingApproval approval = pendingApprovals.remove(id);
 
         if (approval == null) throw new IllegalArgumentException("Approval not found: "+ id);
-
-        return approval.skill().execute(approval.request());
+        Object result = approval.skill().execute(approval.request());
+        return new ApprovedAction(approval, result);
     }
 
     public boolean reject(String id) {
