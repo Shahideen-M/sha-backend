@@ -1,11 +1,13 @@
 package com.sha.brain;
 
+import com.sha.brain.approval.ApprovalService;
+import com.sha.brain.approval.ApprovedAction;
+import com.sha.brain.approval.PendingApproval;
 import com.sha.brain.dto.ShaBrainResponse;
 import com.sha.brain.enums.AuthorityLevel;
 import com.sha.brain.enums.ShaResponseType;
 import com.sha.skills.Skill;
 import com.sha.skills.tools.ShaTool;
-import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.AdvisorParams;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
