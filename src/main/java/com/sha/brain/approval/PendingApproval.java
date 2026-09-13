@@ -1,4 +1,4 @@
-package com.sha.brain;
+package com.sha.brain.approval;
 
 import com.sha.skills.Skill;
 
