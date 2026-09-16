@@ -39,8 +39,7 @@ public class ApprovalService {
         PendingApproval approval = pendingApprovals.remove(id);
 
         if (approval == null) throw new IllegalArgumentException("Approval not found: "+ id);
-        Object result = approval.skill().execute(approval.request());
-        return new ApprovedAction(approval, result);
+        return new ApprovedAction(approval);
     }
 
     public boolean reject(String id) {

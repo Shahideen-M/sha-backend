@@ -163,7 +163,14 @@ public class ToolExecutionService {
 
     public ShaBrainResponse resume(ApprovedAction approvedAction) {
         PendingApproval approval = approvedAction.approval();
-        Object result = approvedAction.result();
+        Object result;
+        try {
+            result = approval.skill().execute(approval.request());
+        } catch (Exception e) {
+            return error(
+                    "Approved action failed: " + e.getMessage()
+            );
+        }
         String continuation = """
                 Continue the user's original task.
 

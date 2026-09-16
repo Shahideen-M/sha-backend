@@ -1,7 +1,6 @@
 package com.sha.brain.approval;
 
 public record ApprovedAction(
-        PendingApproval approval,
-        Object result
+        PendingApproval approval
 ) {
 }
