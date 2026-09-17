@@ -103,7 +103,10 @@ public class ProjectReaderSkill implements Skill<ProjectReaderRequest, ProjectRe
 
     @Override
     public AuthorityLevel getAuthority(Object request) {
-        return null;
+        ProjectReaderRequest projectReaderRequest = (ProjectReaderRequest) request;
+        return switch (projectReaderRequest.getOperation()) {
+            case SCAN_PROJECT, FIND_FILE, FIND_TEXT -> AuthorityLevel.SAFE;
+        };
     }
 
     public ProjectReaderResponse scanProject(ProjectReaderRequest request) {
