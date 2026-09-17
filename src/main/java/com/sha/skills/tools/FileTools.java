@@ -45,6 +45,26 @@ public class FileTools implements ShaTool {
                 request.setContent(json.get("content").asString());
                 request.setOperation(FileOperation.WRITE);
             }
+            case "updateFile" -> {
+                request.setPath(json.get("path").asString());
+                request.setContent(json.get("content").asString());
+                request.setOperation(FileOperation.UPDATE);
+            }
+            case "searchFiles" -> {
+                request.setPath(json.get("path").asString());
+                request.setSearchKeyword(json.get("searchKeyword").asString());
+                request.setOperation(FileOperation.SEARCH);
+            }
+            case "copyFile" -> {
+                request.setSourcePath(json.get("sourcePath").asString());
+                request.setDestinationPath(json.get("destinationPath").asString());
+                request.setOperation(FileOperation.COPY);
+            }
+            case "renameFile" -> {
+                request.setSourcePath(json.get("sourcePath").asString());
+                request.setDestinationPath(json.get("destinationPath").asString());
+                request.setOperation(FileOperation.RENAME);
+            }
             default -> throw new IllegalArgumentException("Unknown FileTools operation: " + toolName);
         }
         return request;
@@ -72,6 +92,42 @@ public class FileTools implements ShaTool {
         request.setPath(path);
         request.setContent(content);
         request.setOperation(FileOperation.WRITE);
+        return fileSkill.execute(request);
+    }
+
+    @Tool(description = "Update the contents of an existing file")
+    public FileResponse updateFile(String path, String content) {
+        FileRequest request = new FileRequest();
+        request.setPath(path);
+        request.setContent(content);
+        request.setOperation(FileOperation.UPDATE);
+        return fileSkill.execute(request);
+    }
+
+    @Tool(description = "Search files by name inside a directory")
+    public FileResponse searchFiles(String path, String searchKeyword) {
+        FileRequest request = new FileRequest();
+        request.setPath(path);
+        request.setSearchKeyword(searchKeyword);
+        request.setOperation(FileOperation.SEARCH);
+        return fileSkill.execute(request);
+    }
+
+    @Tool(description = "Copy a file to another path")
+    public FileResponse copyFile(String sourcePath, String destinationPath) {
+        FileRequest request = new FileRequest();
+        request.setSourcePath(sourcePath);
+        request.setDestinationPath(destinationPath);
+        request.setOperation(FileOperation.COPY);
+        return fileSkill.execute(request);
+    }
+
+    @Tool(description = "Rename or move a file to another path")
+    public FileResponse renameFile(String sourcePath, String destinationPath) {
+        FileRequest request = new FileRequest();
+        request.setSourcePath(sourcePath);
+        request.setDestinationPath(destinationPath);
+        request.setOperation(FileOperation.RENAME);
         return fileSkill.execute(request);
     }
 }
