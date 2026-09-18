@@ -32,6 +32,10 @@ public class FileTools implements ShaTool {
         var json = objectMapper.readTree(arguments);
 
         switch (toolName) {
+            case "readFile" -> {
+                request.setPath(json.get("path").asString());
+                request.setOperation(FileOperation.READ);
+            }
             case "listFiles" -> {
                 request.setPath(json.get("path").asString());
                 request.setOperation(FileOperation.LIST);
@@ -68,6 +72,14 @@ public class FileTools implements ShaTool {
             default -> throw new IllegalArgumentException("Unknown FileTools operation: " + toolName);
         }
         return request;
+    }
+
+    @Tool(description = "Read and return the contents of a file")
+    public FileResponse readFile(String path) {
+        FileRequest request = new FileRequest();
+        request.setPath(path);
+        request.setOperation(FileOperation.READ);
+        return fileSkill.execute(request);
     }
 
     @Tool(description = "List files and directories at the given path")
