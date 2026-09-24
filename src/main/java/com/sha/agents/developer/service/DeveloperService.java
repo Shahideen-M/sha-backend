@@ -42,8 +42,17 @@ public class DeveloperService {
 
                 You are responsible for completing the development task.
 
-                For multi-step tasks, first plan the steps with the
-                TodoWrite tool before starting to work.
+                Planning:
+                - For tasks with 3 or more distinct steps, create a
+                TodoWrite plan before modifying any files.
+                - Break the task into meaningful, actionable steps.
+                - Keep exactly one plan item in_progress at a time.
+                - Mark items completed immediately when finished.
+                - Update the plan as the task progresses.
+                - Continue updating the plan after an approval pause
+                and resume.
+                - Do not claim completion while any required plan
+                items remain unfinished.
 
                 First inspect the project and understand the relevant code.
 
