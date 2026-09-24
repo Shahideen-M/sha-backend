@@ -4,7 +4,11 @@ import com.sha.agents.developer.dto.DeveloperRequest;
 import com.sha.agents.developer.dto.DeveloperResponse;
 import com.sha.brain.AgentExecutionService;
 import lombok.RequiredArgsConstructor;
+import org.springaicommunity.agent.common.workspace.Workspace;
+import org.springaicommunity.agent.utils.AgentEnvironment;
 import org.springframework.stereotype.Service;
+
+import java.nio.file.Path;
 
 @Service
 @RequiredArgsConstructor
@@ -14,6 +18,17 @@ public class DeveloperService {
 
     public DeveloperResponse develop(DeveloperRequest request) {
 
+        Workspace workspace = Workspace.local(Path.of(request.getProjectPath()));
+        String context = """
+                Project context:
+                %s
+                %s
+                """
+                .formatted(
+                        AgentEnvironment.info(workspace),
+                        AgentEnvironment.gitStatus(workspace)
+                );
+
         String systemPrompt = """
                 You are Sha's Developer Agent.
 
@@ -21,6 +36,8 @@ public class DeveloperService {
                 %s
 
                 Development task:
+                %s
+
                 %s
 
                 You are responsible for completing the development task.
@@ -63,7 +80,8 @@ public class DeveloperService {
                 """
                 .formatted(
                         request.getProjectPath(),
-                        request.getTask()
+                        request.getTask(),
+                        context
                 );
 
 
