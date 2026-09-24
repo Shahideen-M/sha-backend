@@ -1,65 +1,74 @@
 package com.sha.brain;
 
-import com.sha.brain.approval.ApprovalService;
-import com.sha.brain.approval.ApprovedAction;
-import com.sha.brain.approval.PendingApproval;
+import com.sha.agents.developer.tools.DeveloperToolkit;
+import com.sha.agents.tools.AgentShaTool;
+import com.sha.brain.approval.AgentApprovalService;
+import com.sha.brain.approval.AgentPendingApproval;
+import com.sha.brain.approval.ApprovedAgentAction;
 import com.sha.brain.dto.ShaBrainResponse;
 import com.sha.brain.enums.AuthorityLevel;
 import com.sha.brain.enums.ShaResponseType;
-import com.sha.skills.Skill;
-import com.sha.skills.tools.ShaTool;
 import org.springframework.ai.chat.client.AdvisorParams;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.model.tool.ToolCallingChatOptions;
 import org.springframework.ai.model.tool.ToolCallingManager;
 import org.springframework.ai.model.tool.ToolExecutionResult;
-import org.springframework.ai.support.ToolCallbacks;
-import org.springframework.ai.tool.ToolCallback;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Service
 public class AgentExecutionService {
 
     private final ChatClient chatClient;
-    private final List<ShaTool> tools;
-    private final ApprovalService approvalService;
+    private final AgentApprovalService approvalService;
     private final ToolCallingManager toolCallingManager;
+    private final DeveloperToolkit toolkit;
 
     public AgentExecutionService(
             @Qualifier("geminiChatClient") ChatClient chatClient,
-            List<ShaTool> tools,
-            ApprovalService approvalService,
-            ToolCallingManager toolCallingManager
+            AgentApprovalService approvalService,
+            ToolCallingManager toolCallingManager,
+            DeveloperToolkit toolkit
     ) {
         this.chatClient = chatClient;
-        this.tools = tools;
         this.approvalService = approvalService;
         this.toolCallingManager = toolCallingManager;
+        this.toolkit = toolkit;
     }
 
     public ShaBrainResponse execute(
             String agentName,
+            String projectPath,
             String systemPrompt,
             String userMessage
     ) {
 
-        List<ToolCallback> callbacks = buildCallbacks();
+        List<AgentShaTool> tools;
+
+        try {
+            tools = toolkit.forProject(projectPath);
+        } catch (IllegalArgumentException e) {
+            return error(e.getMessage());
+        }
+
+        List<org.springframework.ai.tool.ToolCallback> callbacks =
+                tools.stream()
+                        .map(AgentShaTool::getTool)
+                        .toList();
 
         ToolCallingChatOptions.Builder optionsBuilder =
-                ToolCallingChatOptions
-                        .builder()
+                ToolCallingChatOptions.builder()
                         .toolCallbacks(callbacks);
 
         ToolCallingChatOptions options = optionsBuilder.build();
+
         var response = chatClient.prompt()
                 .system(systemPrompt)
                 .user(userMessage)
@@ -68,6 +77,7 @@ public class AgentExecutionService {
                 .tools(callbacks)
                 .call()
                 .chatClientResponse();
+
         ChatResponse chatResponse = response.chatResponse();
 
         if (chatResponse == null) {
@@ -76,54 +86,87 @@ public class AgentExecutionService {
 
         Prompt prompt = new Prompt(
                 List.of(
-                        new org.springframework.ai.chat.messages.SystemMessage(systemPrompt),
-                        new org.springframework.ai.chat.messages.UserMessage(userMessage)
-                ), options
+                        new org.springframework.ai.chat.messages.SystemMessage(
+                                systemPrompt
+                        ),
+                        new org.springframework.ai.chat.messages.UserMessage(
+                                userMessage
+                        )
+                ),
+                options
         );
 
         while (chatResponse.hasToolCalls()) {
-            for (var toolCall : chatResponse.getResult().getOutput().getToolCalls()) {
-                ShaTool selectedTool = findTool(toolCall.name());
-                if (selectedTool == null) return error("Unknown tool: " + toolCall.name());
-                Skill<?, ?> skill = selectedTool.getSkill();
-                Object request;
-                try {
-                    request = selectedTool.createRequest(toolCall.name(), toolCall.arguments());
-                } catch (Exception e) {
-                    return error(
-                            "Could not create request for "
-                                    + toolCall.name()
-                                    + ": "
-                                    + e.getMessage()
-                    );
-                }
 
-                AuthorityLevel authority = skill.getAuthority(request);
-                if (authority == AuthorityLevel.BLOCKED) {
-                    return new ShaBrainResponse(
-                            ShaResponseType.ERROR,
-                            "Action blocked by Sha authority policy.",
-                            null,
-                            false,
-                            ""
-                    );
+            List<AssistantMessage.ToolCall> toolCalls =
+                    chatResponse.getResult()
+                            .getOutput()
+                            .getToolCalls();
+
+            int gatedIndex = -1;
+            for (int i = 0; i < toolCalls.size(); i++) {
+                AgentShaTool tool = findTool(tools, toolCalls.get(i).name());
+                if (tool == null) {
+                    return error("Unknown tool: " + toolCalls.get(i).name());
                 }
-                if (authority == AuthorityLevel.APPROVAL_REQUIRED) {
-                    String approvalId = approvalService.create(toolCall.name(), userMessage, skill, request);
-                    return new ShaBrainResponse(
-                            ShaResponseType.APPROVAL_REQUIRED,
-                            "Approval required before executing "
-                                    + toolCall.name() + ".",
-                            null,
-                            true,
-                            approvalId
-                    );
+                if (tool.getAuthority() == AuthorityLevel.BLOCKED) {
+                    return error("Action blocked by Sha authority policy.");
+                }
+                if (tool.getAuthority() == AuthorityLevel.APPROVAL_REQUIRED) {
+                    gatedIndex = i;
+                    break;
                 }
             }
-            ToolExecutionResult executionResult = toolCallingManager.executeToolCalls(prompt, chatResponse);
+
+            if (gatedIndex >= 0) {
+
+                StringBuilder safeResults = new StringBuilder();
+                for (int i = 0; i < gatedIndex; i++) {
+                    AssistantMessage.ToolCall safeCall = toolCalls.get(i);
+                    AgentShaTool safeTool = findTool(tools, safeCall.name());
+                    String safeResult;
+                    try {
+                        safeResult = safeTool.getTool().call(safeCall.arguments());
+                    } catch (Exception e) {
+                        safeResult = "Error: " + e.getMessage();
+                    }
+                    safeResults.append(safeCall.name())
+                            .append(": ")
+                            .append(safeResult)
+                            .append(System.lineSeparator());
+                }
+
+                AssistantMessage.ToolCall gatedCall = toolCalls.get(gatedIndex);
+                AgentShaTool gatedTool = findTool(tools, gatedCall.name());
+
+                String approvalId = approvalService.create(
+                        agentName,
+                        projectPath,
+                        gatedCall.name(),
+                        gatedCall.arguments(),
+                        userMessage,
+                        systemPrompt,
+                        safeResults.toString(),
+                        gatedTool
+                );
+
+                return new ShaBrainResponse(
+                        ShaResponseType.APPROVAL_REQUIRED,
+                        "Approval required before executing "
+                                + gatedCall.name() + ".",
+                        null,
+                        true,
+                        approvalId
+                );
+            }
+
+            ToolExecutionResult executionResult =
+                    toolCallingManager.executeToolCalls(prompt, chatResponse);
 
             List<Message> history = executionResult.conversationHistory();
+
             prompt = new Prompt(history, options);
+
             response = chatClient.prompt()
                     .messages(history)
                     .options(optionsBuilder)
@@ -132,14 +175,15 @@ public class AgentExecutionService {
                     .call()
                     .chatClientResponse();
             chatResponse = response.chatResponse();
+
             if (chatResponse == null) {
                 return error("No response from AI.");
             }
         }
+
         return new ShaBrainResponse(
                 ShaResponseType.CHAT,
-                chatResponse
-                        .getResult()
+                chatResponse.getResult()
                         .getOutput()
                         .getText(),
                 null,
@@ -148,75 +192,63 @@ public class AgentExecutionService {
         );
     }
 
-    public ShaBrainResponse resume(ApprovedAction approvedAction) {
-        PendingApproval approval = approvedAction.approval();
-        Object result;
+    public ShaBrainResponse resume(ApprovedAgentAction approvedAction) {
+
+        AgentPendingApproval approval = approvedAction.approval();
+
+        String result;
         try {
-            result = approval.skill().execute(approval.request());
+            result = approval.tool()
+                    .getTool()
+                    .call(approval.toolArguments());
         } catch (Exception e) {
-            return error(
-                    "Approved action failed: "
-                            + e.getMessage()
-            );
+            return error("Approved action failed: " + e.getMessage());
         }
+
         String continuation = """
                 Continue the user's original task.
 
-                Original user request:
+                Original request:
                 %s
 
-                The following action was approved by the user
-                and has now been successfully executed.
-
-                Tool:
+                Approved tool:
                 %s
 
-                Result:
+                Tool result:
                 %s
 
-                Continue the task from this point.
-                Do not repeat the already completed action
-                unless genuinely necessary.
-                Use another tool if required.
-                If the task is complete, provide the final answer.
+                %s
+
+                Continue from this point.
+                Do not repeat the completed action.
                 """
                 .formatted(
                         approval.userMessage(),
                         approval.toolName(),
-                        String.valueOf(result)
+                        result,
+                        approval.safeResults() == null
+                                || approval.safeResults().isBlank()
+                                ? ""
+                                : "Read-only results gathered before approval:\n"
+                                        + approval.safeResults()
                 );
         return execute(
-                "developer",
-                """
-                You are Sha's Developer Agent.
-
-                Continue the development task using the available
-                development tools.
-
-                Never claim an action succeeded unless the
-                corresponding tool actually succeeded.
-                """,
+                approval.agentName(),
+                approval.projectPath(),
+                approval.systemPrompt(),
                 continuation
         );
     }
 
-    private List<ToolCallback> buildCallbacks() {
-        List<ToolCallback> callbacks = new ArrayList<>();
-        for (ShaTool tool : tools) {
-            callbacks.addAll(Arrays.asList(ToolCallbacks.from(tool)));
-        }
-        return callbacks;
-    }
+    private AgentShaTool findTool(List<AgentShaTool> tools, String toolName) {
 
-    private ShaTool findTool(String toolName) {
-        for (ShaTool tool : tools) {
-            for (ToolCallback callback : ToolCallbacks.from(tool)) {
-                if (callback.getToolDefinition().name().equals(toolName)) {
-                    return tool;
-                }
-            }
-        }
-        return null;
+        return tools.stream()
+                .filter(tool -> tool.getTool()
+                        .getToolDefinition()
+                        .name()
+                        .equals(toolName))
+                .findFirst()
+                .orElse(null);
     }
 
     private ShaBrainResponse error(String message) {

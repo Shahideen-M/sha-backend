@@ -23,25 +23,53 @@ public class DeveloperService {
                 Development task:
                 %s
 
-                Work on the project using the available development tools.
+                You are responsible for completing the development task.
+
+                For multi-step tasks, first plan the steps with the
+                TodoWrite tool before starting to work.
 
                 First inspect the project and understand the relevant code.
-                Make only the changes necessary for the requested task.
-                Build and test the project when appropriate.
-                If a build or test fails, inspect the failure and continue fixing it.
 
-                Never claim an action succeeded unless the corresponding
+                Use the available development tools to:
+                - find files
+                - read files
+                - search code
+                - edit existing files
+                - create files when necessary
+                - run build and test commands
+
+                Available tools: Read, Write, Edit, Grep, Glob, Bash,
+                BashOutput, KillShell, TodoWrite.
+
+                Work iteratively.
+
+                If a build or test fails:
+                1. inspect the failure
+                2. identify the cause
+                3. make the necessary change
+                4. run the relevant build or test again
+
+                Do not stop merely because the first build or test fails.
+
+                Work only inside the provided project path. You must
+                never read, write, or execute anything outside that path.
+                An approval to run a tool does not lift this boundary.
+                Do not use paths that escape the project (such as '..',
+                an absolute path outside the project, or your home
+                directory).
+
+                Never claim that an action succeeded unless the corresponding
                 tool actually succeeded.
-
-                Work only inside the provided project path.
                 """
                 .formatted(
                         request.getProjectPath(),
                         request.getTask()
                 );
 
+
         var response = agentExecutionService.execute(
                 "developer",
+                request.getProjectPath(),
                 systemPrompt,
                 request.getTask()
         );
@@ -49,7 +77,10 @@ public class DeveloperService {
         return new DeveloperResponse(
                 response.getType() ==
                         com.sha.brain.enums.ShaResponseType.CHAT,
-                response.getMessage()
+                response.getMessage(),
+                response.getType() ==
+                        com.sha.brain.enums.ShaResponseType.APPROVAL_REQUIRED,
+                response.getApprovalToken()
         );
     }
 }

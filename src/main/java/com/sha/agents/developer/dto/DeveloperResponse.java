@@ -11,4 +11,6 @@ public class DeveloperResponse {
 
     private boolean success;
     private String message;
+    private boolean approvalRequired;
+    private String approvalToken;
 }
