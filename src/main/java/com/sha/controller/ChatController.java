@@ -2,6 +2,8 @@ package com.sha.controller;
 
 import com.sha.agents.careeragent.dto.CareerRequest;
 import com.sha.agents.careeragent.dto.CareerResponse;
+import com.sha.agents.developer.dto.DeveloperRequest;
+import com.sha.agents.developer.dto.DeveloperResponse;
 import com.sha.brain.ShaBrain;
 import com.sha.brain.dto.ShaBrainResponse;
 import com.sha.agents.contentcreator.dto.ContentCreatorRequest;
@@ -83,5 +85,10 @@ public class ChatController {
     @PostMapping("/local/career")
     public CareerResponse career(@RequestBody CareerRequest request) {
         return shaService.career(request);
+    }
+
+    @PostMapping("/local/develop")
+    public DeveloperResponse develop(@RequestBody DeveloperRequest request) {
+        return shaService.dev(request);
     }
 }

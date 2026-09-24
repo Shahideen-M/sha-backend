@@ -3,6 +3,9 @@ package com.sha.skills.service;
 import com.sha.agents.careeragent.CareerAgent;
 import com.sha.agents.careeragent.dto.CareerRequest;
 import com.sha.agents.careeragent.dto.CareerResponse;
+import com.sha.agents.developer.DeveloperAgent;
+import com.sha.agents.developer.dto.DeveloperRequest;
+import com.sha.agents.developer.dto.DeveloperResponse;
 import com.sha.agents.contentcreator.ContentCreatorAgent;
 import com.sha.agents.contentcreator.VideoEditingAgent;
 import com.sha.agents.contentcreator.dto.VideoEditorRequest;
@@ -110,6 +113,14 @@ public class ShaService {
         CareerAgent agent = agentRegistry.findAgent(
                 AgentType.CAREER,
                 CareerAgent.class
+        );
+        return agent.execute(request);
+    }
+
+    public DeveloperResponse dev(DeveloperRequest request) {
+        DeveloperAgent agent = agentRegistry.findAgent(
+                AgentType.DEVELOPER,
+                DeveloperAgent.class
         );
         return agent.execute(request);
     }
