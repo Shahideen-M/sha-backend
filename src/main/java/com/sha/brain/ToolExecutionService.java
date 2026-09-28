@@ -34,7 +34,7 @@ public class ToolExecutionService {
     private final ApprovalService approvalService;
     private final ToolCallingManager toolCallingManager;
 
-    public ToolExecutionService(@Qualifier("geminiChatClient") ChatClient chatClient, List<ShaTool> tools, ApprovalService approvalService, ToolCallingManager toolCallingManager) {
+    public ToolExecutionService(@Qualifier("groqChatClient") ChatClient chatClient, List<ShaTool> tools, ApprovalService approvalService, ToolCallingManager toolCallingManager) {
         this.chatClient = chatClient;
         this.tools = tools;
         this.approvalService = approvalService;
