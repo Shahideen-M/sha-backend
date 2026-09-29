@@ -32,7 +32,7 @@ public class AgentExecutionService {
     private final DeveloperToolkit toolkit;
 
     public AgentExecutionService(
-            @Qualifier("geminiChatClient") ChatClient chatClient,
+            @Qualifier("nvidiaChatClient") ChatClient chatClient,
             AgentApprovalService approvalService,
             ToolCallingManager toolCallingManager,
             DeveloperToolkit toolkit
