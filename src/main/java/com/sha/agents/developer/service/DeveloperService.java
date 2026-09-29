@@ -54,6 +54,21 @@ public class DeveloperService {
                 - Do not claim completion while any required plan
                 items remain unfinished.
 
+                Implementation:
+                - Work on the single in_progress plan item first.
+                - For each item, follow: inspect -> implement -> verify.
+                - After modifying a file, re-Read the affected area
+                to verify the change.
+                - After meaningful changes, run the relevant build
+                or test.
+                - Use BashOutput to retrieve results or errors from
+                background Bash commands.
+                - Mark an item completed only after it has been
+                verified.
+                - Then move to the next plan item and update TodoWrite.
+                - Continue this workflow after an approval pause
+                and resume.
+
                 First inspect the project and understand the relevant code.
 
                 Use the available development tools to:
