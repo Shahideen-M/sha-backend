@@ -9,6 +9,7 @@ import org.springaicommunity.agent.tools.ShellTools;
 import org.springaicommunity.agent.tools.TodoWriteTool;
 import org.springframework.ai.support.ToolCallbacks;
 import org.springframework.ai.tool.ToolCallback;
+import org.springframework.ai.tool.function.FunctionToolCallback;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,11 +42,24 @@ public class DeveloperTools {
         callbacks.addAll(Arrays.asList(ToolCallbacks.from(grepTool)));
         callbacks.addAll(Arrays.asList(ToolCallbacks.from(globTool)));
         callbacks.addAll(Arrays.asList(ToolCallbacks.from(shellTools)));
-        callbacks.add(ToolCallbacks.from(todoWriteTool)[0]);
+        callbacks.add(flatTodoWriteCallback(todoWriteTool));
 
         return callbacks.stream()
                 .map(tool -> DeveloperTools.wrap(tool, boundary))
                 .toList();
+    }
+
+    private static ToolCallback flatTodoWriteCallback(TodoWriteTool delegate) {
+
+        String description = ToolCallbacks.from(delegate)[0]
+                .getToolDefinition()
+                .description();
+
+        return FunctionToolCallback
+                .builder("TodoWrite", (TodoWriteTool.Todos todos) -> delegate.todoWrite(todos))
+                .description(description)
+                .inputType(TodoWriteTool.Todos.class)
+                .build();
     }
 
     private static AgentShaTool wrap(ToolCallback tool, ProjectBoundary boundary) {
