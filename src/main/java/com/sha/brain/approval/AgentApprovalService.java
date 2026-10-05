@@ -3,6 +3,7 @@ package com.sha.brain.approval;
 import com.sha.agents.tools.AgentShaTool;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,7 +21,8 @@ public class AgentApprovalService {
             String toolArguments,
             String userMessage,
             String systemPrompt,
-            String safeResults,
+            String gatedToolCallId,
+            List<AgentPendingApproval.AnsweredToolCall> answeredCalls,
             AgentShaTool tool
     ) {
         String id = UUID.randomUUID().toString();
@@ -34,7 +36,8 @@ public class AgentApprovalService {
                         projectPath,
                         userMessage,
                         systemPrompt,
-                        safeResults,
+                        gatedToolCallId,
+                        answeredCalls == null ? List.of() : List.copyOf(answeredCalls),
                         tool
                 )
         );

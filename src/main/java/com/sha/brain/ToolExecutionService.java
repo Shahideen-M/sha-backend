@@ -6,12 +6,14 @@ import com.sha.brain.approval.PendingApproval;
 import com.sha.brain.dto.ShaBrainResponse;
 import com.sha.brain.enums.AuthorityLevel;
 import com.sha.brain.enums.ShaResponseType;
-import com.sha.skills.Skill;
 import com.sha.skills.tools.ShaTool;
 import org.springframework.ai.chat.client.AdvisorParams;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.chat.messages.SystemMessage;
+import org.springframework.ai.chat.messages.ToolResponseMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.model.tool.ToolCallingChatOptions;
@@ -29,47 +31,54 @@ import java.util.List;
 @Service
 public class ToolExecutionService {
 
+    private static final String SYSTEM_PROMPT = """
+            You are Sha, a helpful AI assistant.
+
+            You are the brain of Sha.
+            You decide which available tools are needed.
+
+            Use tools when they are necessary to perform
+            an action requested by the user.
+
+            You may use multiple tools in sequence.
+
+            Never claim an action was completed unless
+            the corresponding tool actually succeeded.
+            """;
+
     private final ChatClient chatClient;
     private final List<ShaTool> tools;
     private final ApprovalService approvalService;
     private final ToolCallingManager toolCallingManager;
+    private final ChatMemory chatMemory;
 
-    public ToolExecutionService(@Qualifier("groqChatClient") ChatClient chatClient, List<ShaTool> tools, ApprovalService approvalService, ToolCallingManager toolCallingManager) {
+    public ToolExecutionService(
+            @Qualifier("groqChatClient") ChatClient chatClient,
+            List<ShaTool> tools,
+            ApprovalService approvalService,
+            ToolCallingManager toolCallingManager,
+            ChatMemory chatMemory
+    ) {
         this.chatClient = chatClient;
         this.tools = tools;
         this.approvalService = approvalService;
         this.toolCallingManager = toolCallingManager;
+        this.chatMemory = chatMemory;
     }
 
     public ShaBrainResponse execute(String userMessage) {
 
-        List<ToolCallback> callbacks = buildCallbacks();
-
         ToolCallingChatOptions.Builder optionsBuilder =
                 ToolCallingChatOptions
                         .builder()
-                        .toolCallbacks(callbacks);
+                        .toolCallbacks(buildCallbacks());
 
-        ToolCallingChatOptions options = optionsBuilder.build();
         var response = chatClient.prompt()
-                .system("""
-                        You are Sha, a helpful AI assistant.
-                        
-                        You are the brain of Sha.
-                        You decide which available tools are needed.
-                        
-                        Use tools when they are necessary to perform
-                        an action requested by the user.
-                        
-                        You may use multiple tools in sequence.
-                        
-                        Never claim an action was completed unless
-                        the corresponding tool actually succeeded.
-                        """)
+                .system(SYSTEM_PROMPT)
                 .user(userMessage)
                 .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, "default"))
                 .advisors(AdvisorParams.toolCallingAdvisorAutoRegister(false))
-                .tools(callbacks)
+                .tools(buildCallbacks())
                 .call()
                 .chatClientResponse();
         ChatResponse chatResponse = response.chatResponse();
@@ -80,38 +89,98 @@ public class ToolExecutionService {
 
         Prompt prompt = new Prompt(
                 List.of(
-                        new org.springframework.ai.chat.messages.SystemMessage(
-                                """
-                                        You are Sha, a helpful AI assistant.
-                                        
-                                        You are the brain of Sha.
-                                        Decide which tools are needed.
-                                        You may use multiple tools in sequence.
-                                        Never claim an action succeeded unless
-                                        the tool actually succeeded.
-                                        """
-                        ),
+                        new SystemMessage(SYSTEM_PROMPT),
                         new org.springframework.ai.chat.messages.UserMessage(userMessage)
-                ), options
+                ),
+                optionsBuilder.build()
         );
 
+        return driveToolLoop(
+                optionsBuilder,
+                userMessage,
+                prompt,
+                chatResponse
+        );
+    }
+
+    public ShaBrainResponse resume(ApprovedAction approvedAction) {
+        PendingApproval approval = approvedAction.approval();
+
+        Object result;
+        try {
+            result = approval.skill().execute(approval.request());
+        } catch (Exception e) {
+            result = "Error: " + e.getMessage();
+        }
+
+        ToolCallingChatOptions.Builder optionsBuilder =
+                ToolCallingChatOptions
+                        .builder()
+                        .toolCallbacks(buildCallbacks());
+
+        List<ToolResponseMessage.ToolResponse> responses =
+                new ArrayList<>(approval.answeredCalls().stream()
+                        .map(call -> new ToolResponseMessage.ToolResponse(
+                                call.toolCallId(),
+                                call.name(),
+                                call.result()
+                        ))
+                        .toList());
+
+        responses.add(new ToolResponseMessage.ToolResponse(
+                approval.gatedToolCallId(),
+                approval.toolName(),
+                String.valueOf(result)
+        ));
+
+        List<Message> history = new ArrayList<>();
+        history.add(new SystemMessage(approval.systemPrompt()));
+        history.addAll(chatMemory.get("default"));
+        history.add(ToolResponseMessage.builder().responses(responses).build());
+
+        ChatResponse chatResponse = callModel(history, optionsBuilder);
+
+        if (chatResponse == null) {
+            return error("No response from AI.");
+        }
+
+        return driveToolLoop(
+                optionsBuilder,
+                approval.userMessage(),
+                new Prompt(history, optionsBuilder.build()),
+                chatResponse
+        );
+    }
+
+    private ShaBrainResponse driveToolLoop(
+            ToolCallingChatOptions.Builder optionsBuilder,
+            String userMessage,
+            Prompt prompt,
+            ChatResponse chatResponse
+    ) {
+
         while (chatResponse.hasToolCalls()) {
-            for (var toolCall : chatResponse.getResult().getOutput().getToolCalls()) {
-                ShaTool selectedTool = findTool(toolCall.name());
-                if (selectedTool == null) return error("Unknown tool: " + toolCall.name());
-                Skill<?, ?> skill = selectedTool.getSkill();
+            List<AssistantMessage.ToolCall> toolCalls = chatResponse.getResult().getOutput().getToolCalls();
+
+            int gatedIndex = -1;
+            List<ShaTool> selectedTools = new ArrayList<>();
+            List<Object> requests = new ArrayList<>();
+
+            for (int i = 0; i < toolCalls.size(); i++) {
+                ShaTool selectedTool = findTool(toolCalls.get(i).name());
+                if (selectedTool == null) return error("Unknown tool: " + toolCalls.get(i).name());
                 Object request;
                 try {
-                    request = selectedTool.createRequest(toolCall.name(), toolCall.arguments());
+                    request = selectedTool.createRequest(toolCalls.get(i).name(), toolCalls.get(i).arguments());
                 } catch (Exception e) {
                     return error(
                             "Could not create request for "
-                                    + toolCall.name()
+                                    + toolCalls.get(i).name()
                                     + ": "
                                     + e.getMessage()
                     );
                 }
-                AuthorityLevel authority = skill.getAuthority(request);
+                AuthorityLevel authority = selectedTool.getSkill().getAuthority(request);
                 if (authority == AuthorityLevel.BLOCKED) {
                     return new ShaBrainResponse(
                             ShaResponseType.ERROR,
@@ -121,34 +190,45 @@ public class ToolExecutionService {
                             ""
                     );
                 }
+                selectedTools.add(selectedTool);
+                requests.add(request);
                 if (authority == AuthorityLevel.APPROVAL_REQUIRED) {
-                    String approvalId = approvalService.create(toolCall.name(), userMessage, skill, request);
-                    return new ShaBrainResponse(
-                            ShaResponseType.APPROVAL_REQUIRED,
-                            "Approval required before executing "
-                                    + toolCall.name() + ".",
-                            null,
-                            true,
-                            approvalId
-                    );
+                    gatedIndex = i;
+                    break;
                 }
             }
-            ToolExecutionResult executionResult = toolCallingManager.executeToolCalls(prompt, chatResponse);
 
+            if (gatedIndex >= 0) {
+                AssistantMessage.ToolCall gatedCall = toolCalls.get(gatedIndex);
+                String approvalId = approvalService.create(
+                        gatedCall.name(),
+                        userMessage,
+                        SYSTEM_PROMPT,
+                        gatedCall.id(),
+                        answerRemainingCalls(toolCalls, gatedIndex),
+                        selectedTools.get(gatedIndex).getSkill(),
+                        requests.get(gatedIndex)
+                );
+                return new ShaBrainResponse(
+                        ShaResponseType.APPROVAL_REQUIRED,
+                        "Approval required before executing "
+                                + gatedCall.name() + ".",
+                        null,
+                        true,
+                        approvalId
+                );
+            }
+
+            ToolExecutionResult executionResult = toolCallingManager.executeToolCalls(prompt, chatResponse);
             List<Message> history = executionResult.conversationHistory();
-            prompt = new Prompt(history, options);
-            response = chatClient.prompt()
-                    .messages(history)
-                    .options(optionsBuilder)
-                    .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, "default"))
-                    .advisors(AdvisorParams.toolCallingAdvisorAutoRegister(false))
-                    .call()
-                    .chatClientResponse();
-            chatResponse = response.chatResponse();
+            prompt = new Prompt(history, optionsBuilder.build());
+            chatResponse = callModel(history, optionsBuilder);
+
             if (chatResponse == null) {
                 return error("No response from AI.");
             }
         }
+
         return new ShaBrainResponse(
                 ShaResponseType.CHAT,
                 chatResponse
@@ -161,43 +241,92 @@ public class ToolExecutionService {
         );
     }
 
-    public ShaBrainResponse resume(ApprovedAction approvedAction) {
-        PendingApproval approval = approvedAction.approval();
-        Object result;
-        try {
-            result = approval.skill().execute(approval.request());
-        } catch (Exception e) {
-            return error(
-                    "Approved action failed: " + e.getMessage()
-            );
+    private List<PendingApproval.AnsweredToolCall> answerRemainingCalls(
+            List<AssistantMessage.ToolCall> toolCalls,
+            int gatedIndex
+    ) {
+
+        List<PendingApproval.AnsweredToolCall> answered = new ArrayList<>();
+
+        for (int i = 0; i < toolCalls.size(); i++) {
+            if (i == gatedIndex) {
+                continue;
+            }
+
+            AssistantMessage.ToolCall toolCall = toolCalls.get(i);
+            ShaTool tool = findTool(toolCall.name());
+
+            if (tool == null) {
+                answered.add(new PendingApproval.AnsweredToolCall(
+                        toolCall.id(),
+                        toolCall.name(),
+                        "Error: unknown tool."
+                ));
+                continue;
+            }
+
+            Object request;
+            AuthorityLevel authority;
+            try {
+                request = tool.createRequest(toolCall.name(), toolCall.arguments());
+                authority = tool.getSkill().getAuthority(request);
+            } catch (Exception e) {
+                answered.add(new PendingApproval.AnsweredToolCall(
+                        toolCall.id(),
+                        toolCall.name(),
+                        "Error: " + e.getMessage()
+                ));
+                continue;
+            }
+
+            if (authority == AuthorityLevel.BLOCKED) {
+                answered.add(new PendingApproval.AnsweredToolCall(
+                        toolCall.id(),
+                        toolCall.name(),
+                        "Error: blocked by Sha authority policy."
+                ));
+                continue;
+            }
+
+            if (authority == AuthorityLevel.APPROVAL_REQUIRED) {
+                answered.add(new PendingApproval.AnsweredToolCall(
+                        toolCall.id(),
+                        toolCall.name(),
+                        "Deferred: not executed. This action also requires approval."
+                ));
+                continue;
+            }
+
+            String safeResult;
+            try {
+                safeResult = String.valueOf(tool.getSkill().execute(request));
+            } catch (Exception e) {
+                safeResult = "Error: " + e.getMessage();
+            }
+
+            answered.add(new PendingApproval.AnsweredToolCall(
+                    toolCall.id(),
+                    toolCall.name(),
+                    safeResult == null ? "" : safeResult
+            ));
         }
-        String continuation = """
-                Continue the user's original task.
 
-                Original user request:
-                %s
+        return answered;
+    }
 
-                The following action was approved by the user
-                and has now been successfully executed.
+    private ChatResponse callModel(
+            List<Message> history,
+            ToolCallingChatOptions.Builder optionsBuilder
+    ) {
 
-                Tool:
-                %s
-
-                Result:
-                %s
-
-                Continue the task from this point.
-                Do not repeat the already completed action
-                unless it is genuinely necessary.
-                Use another tool if required.
-                If the task is complete, provide the final answer.
-                """
-                .formatted(
-                        approval.userMessage(),
-                        approval.toolName(),
-                        String.valueOf(result)
-                );
-        return execute(continuation);
+        return chatClient.prompt()
+                .messages(history)
+                .options(optionsBuilder)
+                .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, CONVERSATION_ID))
+                .advisors(AdvisorParams.toolCallingAdvisorAutoRegister(false))
+                .call()
+                .chatClientResponse()
+                .chatResponse();
     }
 
     private List<ToolCallback> buildCallbacks() {

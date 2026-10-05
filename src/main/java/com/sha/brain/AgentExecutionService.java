@@ -13,6 +13,8 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.chat.messages.SystemMessage;
+import org.springframework.ai.chat.messages.ToolResponseMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.model.tool.ToolCallingChatOptions;
@@ -21,6 +23,7 @@ import org.springframework.ai.model.tool.ToolExecutionResult;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -30,17 +33,20 @@ public class AgentExecutionService {
     private final AgentApprovalService approvalService;
     private final ToolCallingManager toolCallingManager;
     private final DeveloperToolkit toolkit;
+    private final ChatMemory chatMemory;
 
     public AgentExecutionService(
             @Qualifier("nvidiaChatClient") ChatClient chatClient,
             AgentApprovalService approvalService,
             ToolCallingManager toolCallingManager,
-            DeveloperToolkit toolkit
+            DeveloperToolkit toolkit,
+            ChatMemory chatMemory
     ) {
         this.chatClient = chatClient;
         this.approvalService = approvalService;
         this.toolCallingManager = toolCallingManager;
         this.toolkit = toolkit;
+        this.chatMemory = chatMemory;
     }
 
     public ShaBrainResponse execute(
@@ -72,7 +78,7 @@ public class AgentExecutionService {
         var response = chatClient.prompt()
                 .system(systemPrompt)
                 .user(userMessage)
-                .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, "agent-" + agentName))
+                .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, conversationId(agentName)))
                 .advisors(AdvisorParams.toolCallingAdvisorAutoRegister(false))
                 .tools(callbacks)
                 .call()
@@ -86,15 +92,105 @@ public class AgentExecutionService {
 
         Prompt prompt = new Prompt(
                 List.of(
-                        new org.springframework.ai.chat.messages.SystemMessage(
-                                systemPrompt
-                        ),
+                        new SystemMessage(systemPrompt),
                         new org.springframework.ai.chat.messages.UserMessage(
                                 userMessage
                         )
                 ),
                 options
         );
+
+        return driveAgentLoop(
+                tools,
+                optionsBuilder,
+                agentName,
+                projectPath,
+                systemPrompt,
+                userMessage,
+                prompt,
+                chatResponse
+        );
+    }
+
+    public ShaBrainResponse resume(ApprovedAgentAction approvedAction) {
+
+        AgentPendingApproval approval = approvedAction.approval();
+        List<AgentShaTool> tools;
+
+        try {
+            tools = toolkit.forProject(approval.projectPath());
+        } catch (IllegalArgumentException e) {
+            return error(e.getMessage());
+        }
+
+        List<org.springframework.ai.tool.ToolCallback> callbacks =
+                tools.stream()
+                        .map(AgentShaTool::getTool)
+                        .toList();
+
+        ToolCallingChatOptions.Builder optionsBuilder =
+                ToolCallingChatOptions.builder()
+                        .toolCallbacks(callbacks);
+
+        ToolCallingChatOptions options = optionsBuilder.build();
+
+        String result;
+        try {
+            result = approval.tool()
+                    .getTool()
+                    .call(approval.toolArguments());
+        } catch (Exception e) {
+            result = "Error: " + e.getMessage();
+        }
+
+        List<ToolResponseMessage.ToolResponse> responses =
+                new ArrayList<>(approval.answeredCalls().stream()
+                        .map(call -> new ToolResponseMessage.ToolResponse(
+                                call.toolCallId(),
+                                call.name(),
+                                call.result()
+                        ))
+                        .toList());
+
+        responses.add(new ToolResponseMessage.ToolResponse(
+                approval.gatedToolCallId(),
+                approval.toolName(),
+                result == null ? "" : result
+        ));
+
+        List<Message> history = new ArrayList<>();
+        history.add(new SystemMessage(approval.systemPrompt()));
+        history.addAll(chatMemory.get(conversationId(approval.agentName())));
+        history.add(ToolResponseMessage.builder().responses(responses).build());
+
+        ChatResponse chatResponse = callModel(history, optionsBuilder, approval.agentName());
+
+        if (chatResponse == null) {
+            return error("No response from AI.");
+        }
+
+        return driveAgentLoop(
+                tools,
+                optionsBuilder,
+                approval.agentName(),
+                approval.projectPath(),
+                approval.systemPrompt(),
+                approval.userMessage(),
+                new Prompt(history, options),
+                chatResponse
+        );
+    }
+
+    private ShaBrainResponse driveAgentLoop(
+            List<AgentShaTool> tools,
+            ToolCallingChatOptions.Builder optionsBuilder,
+            String agentName,
+            String projectPath,
+            String systemPrompt,
+            String userMessage,
+            Prompt prompt,
+            ChatResponse chatResponse
+    ) {
 
         while (chatResponse.hasToolCalls()) {
 
@@ -120,21 +216,8 @@ public class AgentExecutionService {
 
             if (gatedIndex >= 0) {
 
-                StringBuilder safeResults = new StringBuilder();
-                for (int i = 0; i < gatedIndex; i++) {
-                    AssistantMessage.ToolCall safeCall = toolCalls.get(i);
-                    AgentShaTool safeTool = findTool(tools, safeCall.name());
-                    String safeResult;
-                    try {
-                        safeResult = safeTool.getTool().call(safeCall.arguments());
-                    } catch (Exception e) {
-                        safeResult = "Error: " + e.getMessage();
-                    }
-                    safeResults.append(safeCall.name())
-                            .append(": ")
-                            .append(safeResult)
-                            .append(System.lineSeparator());
-                }
+                List<AgentPendingApproval.AnsweredToolCall> answeredCalls =
+                        answerRemainingCalls(tools, toolCalls, gatedIndex);
 
                 AssistantMessage.ToolCall gatedCall = toolCalls.get(gatedIndex);
                 AgentShaTool gatedTool = findTool(tools, gatedCall.name());
@@ -146,7 +229,8 @@ public class AgentExecutionService {
                         gatedCall.arguments(),
                         userMessage,
                         systemPrompt,
-                        safeResults.toString(),
+                        gatedCall.id(),
+                        answeredCalls,
                         gatedTool
                 );
 
@@ -165,16 +249,9 @@ public class AgentExecutionService {
 
             List<Message> history = executionResult.conversationHistory();
 
-            prompt = new Prompt(history, options);
+            prompt = new Prompt(history, optionsBuilder.build());
 
-            response = chatClient.prompt()
-                    .messages(history)
-                    .options(optionsBuilder)
-                    .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, "agent-" + agentName))
-                    .advisors(AdvisorParams.toolCallingAdvisorAutoRegister(false))
-                    .call()
-                    .chatClientResponse();
-            chatResponse = response.chatResponse();
+            chatResponse = callModel(history, optionsBuilder, agentName);
 
             if (chatResponse == null) {
                 return error("No response from AI.");
@@ -192,52 +269,84 @@ public class AgentExecutionService {
         );
     }
 
-    public ShaBrainResponse resume(ApprovedAgentAction approvedAction) {
+    private List<AgentPendingApproval.AnsweredToolCall> answerRemainingCalls(
+            List<AgentShaTool> tools,
+            List<AssistantMessage.ToolCall> toolCalls,
+            int gatedIndex
+    ) {
+        List<AgentPendingApproval.AnsweredToolCall> answered = new ArrayList<>();
 
-        AgentPendingApproval approval = approvedAction.approval();
+        for (int i = 0; i < toolCalls.size(); i++) {
 
-        String result;
-        try {
-            result = approval.tool()
-                    .getTool()
-                    .call(approval.toolArguments());
-        } catch (Exception e) {
-            return error("Approved action failed: " + e.getMessage());
+            if (i == gatedIndex) {
+                continue;
+            }
+
+            AssistantMessage.ToolCall toolCall = toolCalls.get(i);
+            AgentShaTool tool = findTool(tools, toolCall.name());
+
+            if (tool == null) {
+                answered.add(new AgentPendingApproval.AnsweredToolCall(
+                        toolCall.id(),
+                        toolCall.name(),
+                        "Error: unknown tool."
+                ));
+                continue;
+            }
+
+            if (tool.getAuthority() == AuthorityLevel.BLOCKED) {
+                answered.add(new AgentPendingApproval.AnsweredToolCall(
+                        toolCall.id(),
+                        toolCall.name(),
+                        "Error: blocked by Sha authority policy."
+                ));
+                continue;
+            }
+
+            if (tool.getAuthority() == AuthorityLevel.APPROVAL_REQUIRED) {
+                answered.add(new AgentPendingApproval.AnsweredToolCall(
+                        toolCall.id(),
+                        toolCall.name(),
+                        "Deferred: not executed. This action also requires approval."
+                ));
+                continue;
+            }
+
+            String safeResult;
+            try {
+                safeResult = tool.getTool().call(toolCall.arguments());
+            } catch (Exception e) {
+                safeResult = "Error: " + e.getMessage();
+            }
+
+            answered.add(new AgentPendingApproval.AnsweredToolCall(
+                    toolCall.id(),
+                    toolCall.name(),
+                    safeResult == null ? "" : safeResult
+            ));
         }
 
-        String continuation = """
-                Continue the user's original task.
+        return answered;
+    }
 
-                Original request:
-                %s
+    private ChatResponse callModel(
+            List<Message> history,
+            ToolCallingChatOptions.Builder optionsBuilder,
+            String agentName
+    ) {
 
-                Approved tool:
-                %s
+        return chatClient.prompt()
+                .messages(history)
+                .options(optionsBuilder)
+                .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, conversationId(agentName)))
+                .advisors(AdvisorParams.toolCallingAdvisorAutoRegister(false))
+                .call()
+                .chatClientResponse()
+                .chatResponse();
+    }
 
-                Tool result:
-                %s
-
-                %s
-
-                Continue from this point.
-                Do not repeat the completed action.
-                """
-                .formatted(
-                        approval.userMessage(),
-                        approval.toolName(),
-                        result,
-                        approval.safeResults() == null
-                                || approval.safeResults().isBlank()
-                                ? ""
-                                : "Read-only results gathered before approval:\n"
-                                        + approval.safeResults()
-                );
-        return execute(
-                approval.agentName(),
-                approval.projectPath(),
-                approval.systemPrompt(),
-                continuation
-        );
+    private String conversationId(String agentName) {
+        return "agent-" + agentName;
     }
 
     private AgentShaTool findTool(List<AgentShaTool> tools, String toolName) {

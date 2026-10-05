@@ -3,6 +3,7 @@ package com.sha.brain.approval;
 import com.sha.skills.Skill;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,6 +16,9 @@ public class ApprovalService {
     public String create(
             String toolName,
             String userMessage,
+            String systemPrompt,
+            String gatedToolCallId,
+            List<PendingApproval.AnsweredToolCall> answeredCalls,
             Skill<?, ?> skill,
             Object request
     ) {
@@ -23,6 +27,9 @@ public class ApprovalService {
                 id,
                 toolName,
                 userMessage,
+                systemPrompt,
+                gatedToolCallId,
+                answeredCalls == null ? List.of() : List.copyOf(answeredCalls),
                 skill,
                 request
         );
