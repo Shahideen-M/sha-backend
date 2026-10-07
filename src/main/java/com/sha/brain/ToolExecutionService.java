@@ -73,6 +73,8 @@ public class ToolExecutionService {
                         .builder()
                         .toolCallbacks(buildCallbacks());
 
+        List<Message> priorMemory = new ArrayList<>(chatMemory.get("default"));
+
         var response = chatClient.prompt()
                 .system(SYSTEM_PROMPT)
                 .user(userMessage)
@@ -87,13 +89,12 @@ public class ToolExecutionService {
             return error("No response from AI.");
         }
 
-        Prompt prompt = new Prompt(
-                List.of(
-                        new SystemMessage(SYSTEM_PROMPT),
-                        new org.springframework.ai.chat.messages.UserMessage(userMessage)
-                ),
-                optionsBuilder.build()
-        );
+        List<Message> initialMessages = new ArrayList<>();
+        initialMessages.add(new SystemMessage(SYSTEM_PROMPT));
+        initialMessages.addAll(priorMemory);
+        initialMessages.add(new org.springframework.ai.chat.messages.UserMessage(userMessage));
+
+        Prompt prompt = new Prompt(initialMessages, optionsBuilder.build());
 
         return driveToolLoop(
                 optionsBuilder,
@@ -130,7 +131,7 @@ public class ToolExecutionService {
         responses.add(new ToolResponseMessage.ToolResponse(
                 approval.gatedToolCallId(),
                 approval.toolName(),
-                String.valueOf(result)
+                result == null ? "" : String.valueOf(result)
         ));
 
         List<Message> history = new ArrayList<>();
@@ -168,11 +169,15 @@ public class ToolExecutionService {
 
             for (int i = 0; i < toolCalls.size(); i++) {
                 ShaTool selectedTool = findTool(toolCalls.get(i).name());
-                if (selectedTool == null) return error("Unknown tool: " + toolCalls.get(i).name());
+                if (selectedTool == null) {
+                    answerToolCallsInMemory(toolCalls, "Error: unknown tool.");
+                    return error("Unknown tool: " + toolCalls.get(i).name());
+                }
                 Object request;
                 try {
                     request = selectedTool.createRequest(toolCalls.get(i).name(), toolCalls.get(i).arguments());
                 } catch (Exception e) {
+                    answerToolCallsInMemory(toolCalls, "Error: " + e.getMessage());
                     return error(
                             "Could not create request for "
                                     + toolCalls.get(i).name()
@@ -182,6 +187,7 @@ public class ToolExecutionService {
                 }
                 AuthorityLevel authority = selectedTool.getSkill().getAuthority(request);
                 if (authority == AuthorityLevel.BLOCKED) {
+                    answerToolCallsInMemory(toolCalls, "Error: blocked by Sha authority policy.");
                     return new ShaBrainResponse(
                             ShaResponseType.ERROR,
                             "Action blocked by Sha authority policy.",
@@ -299,7 +305,8 @@ public class ToolExecutionService {
 
             String safeResult;
             try {
-                safeResult = String.valueOf(tool.getSkill().execute(request));
+                Object executed = tool.getSkill().execute(request);
+                safeResult = executed == null ? "" : String.valueOf(executed);
             } catch (Exception e) {
                 safeResult = "Error: " + e.getMessage();
             }
@@ -307,11 +314,27 @@ public class ToolExecutionService {
             answered.add(new PendingApproval.AnsweredToolCall(
                     toolCall.id(),
                     toolCall.name(),
-                    safeResult == null ? "" : safeResult
+                    safeResult
             ));
         }
 
         return answered;
+    }
+
+    private void answerToolCallsInMemory(
+            List<AssistantMessage.ToolCall> toolCalls,
+            String result
+    ) {
+
+        List<ToolResponseMessage.ToolResponse> responses = toolCalls.stream()
+                .map(call -> new ToolResponseMessage.ToolResponse(
+                        call.id(),
+                        call.name(),
+                        result
+                ))
+                .toList();
+
+        chatMemory.add("default", ToolResponseMessage.builder().responses(responses).build());
     }
 
     private ChatResponse callModel(
@@ -322,7 +345,7 @@ public class ToolExecutionService {
         return chatClient.prompt()
                 .messages(history)
                 .options(optionsBuilder)
-                .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, CONVERSATION_ID))
+                .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, "default"))
                 .advisors(AdvisorParams.toolCallingAdvisorAutoRegister(false))
                 .call()
                 .chatClientResponse()
