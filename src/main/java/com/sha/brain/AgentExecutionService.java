@@ -29,6 +29,8 @@ import java.util.List;
 @Service
 public class AgentExecutionService {
 
+    private static final int MAX_ITERATIONS = 15;
+
     private final ChatClient chatClient;
     private final AgentApprovalService approvalService;
     private final ToolCallingManager toolCallingManager;
@@ -93,9 +95,7 @@ public class AgentExecutionService {
         Prompt prompt = new Prompt(
                 List.of(
                         new SystemMessage(systemPrompt),
-                        new org.springframework.ai.chat.messages.UserMessage(
-                                userMessage
-                        )
+                        new org.springframework.ai.chat.messages.UserMessage(userMessage)
                 ),
                 options
         );
@@ -108,7 +108,8 @@ public class AgentExecutionService {
                 systemPrompt,
                 userMessage,
                 prompt,
-                chatResponse
+                chatResponse,
+                0
         );
     }
 
@@ -177,7 +178,8 @@ public class AgentExecutionService {
                 approval.systemPrompt(),
                 approval.userMessage(),
                 new Prompt(history, options),
-                chatResponse
+                chatResponse,
+                approval.iterations()
         );
     }
 
@@ -189,10 +191,16 @@ public class AgentExecutionService {
             String systemPrompt,
             String userMessage,
             Prompt prompt,
-            ChatResponse chatResponse
+            ChatResponse chatResponse,
+            int iterations
     ) {
 
         while (chatResponse.hasToolCalls()) {
+
+            if (iterations >= MAX_ITERATIONS) {
+                return error("Error: loop iteration budget exceeded.");
+            }
+            iterations++;
 
             List<AssistantMessage.ToolCall> toolCalls =
                     chatResponse.getResult()
@@ -231,7 +239,8 @@ public class AgentExecutionService {
                         systemPrompt,
                         gatedCall.id(),
                         answeredCalls,
-                        gatedTool
+                        gatedTool,
+                        iterations
                 );
 
                 return new ShaBrainResponse(
