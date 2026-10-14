@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class AgentExecutionService {
@@ -78,10 +79,12 @@ public class AgentExecutionService {
 
         ToolCallingChatOptions options = optionsBuilder.build();
 
+        String conversationId = "agent-" + agentName + "-" + UUID.randomUUID();
+
         var response = chatClient.prompt()
                 .system(systemPrompt)
                 .user(userMessage)
-                .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, conversationId(agentName)))
+                .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, conversationId))
                 .advisors(AdvisorParams.toolCallingAdvisorAutoRegister(false))
                 .tools(callbacks)
                 .call()
@@ -105,6 +108,7 @@ public class AgentExecutionService {
                 tools,
                 optionsBuilder,
                 agentName,
+                conversationId,
                 projectPath,
                 systemPrompt,
                 userMessage,
@@ -162,10 +166,10 @@ public class AgentExecutionService {
 
         List<Message> history = new ArrayList<>();
         history.add(new SystemMessage(approval.systemPrompt()));
-        history.addAll(chatMemory.get(conversationId(approval.agentName())));
+        history.addAll(chatMemory.get(approval.conversationId()));
         history.add(ToolResponseMessage.builder().responses(responses).build());
 
-        ChatResponse chatResponse = callModel(history, optionsBuilder, approval.agentName());
+        ChatResponse chatResponse = callModel(history, optionsBuilder, approval.conversationId());
 
         if (chatResponse == null) {
             return error("No response from AI.");
@@ -175,6 +179,7 @@ public class AgentExecutionService {
                 tools,
                 optionsBuilder,
                 approval.agentName(),
+                approval.conversationId(),
                 approval.projectPath(),
                 approval.systemPrompt(),
                 approval.userMessage(),
@@ -188,6 +193,7 @@ public class AgentExecutionService {
             List<AgentShaTool> tools,
             ToolCallingChatOptions.Builder optionsBuilder,
             String agentName,
+            String conversationId,
             String projectPath,
             String systemPrompt,
             String userMessage,
@@ -241,7 +247,8 @@ public class AgentExecutionService {
                         gatedCall.id(),
                         answeredCalls,
                         gatedTool,
-                        iterations
+                        iterations,
+                        conversationId
                 );
 
                 return new ShaBrainResponse(
@@ -265,7 +272,7 @@ public class AgentExecutionService {
 
             prompt = new Prompt(history, optionsBuilder.build());
 
-            chatResponse = callModel(history, optionsBuilder, agentName);
+            chatResponse = callModel(history, optionsBuilder, conversationId);
 
             if (chatResponse == null) {
                 return error("No response from AI.");
@@ -346,21 +353,17 @@ public class AgentExecutionService {
     private ChatResponse callModel(
             List<Message> history,
             ToolCallingChatOptions.Builder optionsBuilder,
-            String agentName
+            String conversationId
     ) {
 
         return chatClient.prompt()
                 .messages(history)
                 .options(optionsBuilder)
-                .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, conversationId(agentName)))
+                .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, conversationId))
                 .advisors(AdvisorParams.toolCallingAdvisorAutoRegister(false))
                 .call()
                 .chatClientResponse()
                 .chatResponse();
-    }
-
-    private String conversationId(String agentName) {
-        return "agent-" + agentName;
     }
 
     private AgentShaTool findTool(List<AgentShaTool> tools, String toolName) {

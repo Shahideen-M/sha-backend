@@ -15,7 +15,8 @@ public record AgentPendingApproval(
         String gatedToolCallId,
         List<AnsweredToolCall> answeredCalls,
         AgentShaTool tool,
-        int iterations
+        int iterations,
+        String conversationId
 ) {
 
     public record AnsweredToolCall(

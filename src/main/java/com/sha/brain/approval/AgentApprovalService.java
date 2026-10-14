@@ -24,7 +24,8 @@ public class AgentApprovalService {
             String gatedToolCallId,
             List<AgentPendingApproval.AnsweredToolCall> answeredCalls,
             AgentShaTool tool,
-            int iterations
+            int iterations,
+            String conversationId
     ) {
         String id = UUID.randomUUID().toString();
         pendingApprovals.put(
@@ -40,7 +41,8 @@ public class AgentApprovalService {
                         gatedToolCallId,
                         answeredCalls == null ? List.of() : List.copyOf(answeredCalls),
                         tool,
-                        iterations
+                        iterations,
+                        conversationId
                 )
         );
         return id;
