@@ -19,6 +19,7 @@ import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.model.tool.ToolCallingChatOptions;
 import org.springframework.ai.model.tool.ToolCallingManager;
+import org.springframework.ai.model.tool.ToolCallLimitExceededException;
 import org.springframework.ai.model.tool.ToolExecutionResult;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -253,8 +254,12 @@ public class AgentExecutionService {
                 );
             }
 
-            ToolExecutionResult executionResult =
-                    toolCallingManager.executeToolCalls(prompt, chatResponse);
+            ToolExecutionResult executionResult;
+            try {
+                executionResult = toolCallingManager.executeToolCalls(prompt, chatResponse);
+            } catch (ToolCallLimitExceededException e) {
+                return error("Error: " + e.getMessage());
+            }
 
             List<Message> history = executionResult.conversationHistory();
 
