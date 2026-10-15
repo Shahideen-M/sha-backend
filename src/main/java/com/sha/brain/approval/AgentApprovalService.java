@@ -1,6 +1,7 @@
 package com.sha.brain.approval;
 
 import com.sha.agents.tools.AgentShaTool;
+import org.springaicommunity.agent.tools.TodoWriteTool;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,7 +26,8 @@ public class AgentApprovalService {
             List<AgentPendingApproval.AnsweredToolCall> answeredCalls,
             AgentShaTool tool,
             int iterations,
-            String conversationId
+            String conversationId,
+            TodoWriteTool.Todos plan
     ) {
         String id = UUID.randomUUID().toString();
         pendingApprovals.put(
@@ -42,7 +44,8 @@ public class AgentApprovalService {
                         answeredCalls == null ? List.of() : List.copyOf(answeredCalls),
                         tool,
                         iterations,
-                        conversationId
+                        conversationId,
+                        plan
                 )
         );
         return id;

@@ -8,6 +8,7 @@ import com.sha.brain.approval.ApprovedAgentAction;
 import com.sha.brain.dto.ShaBrainResponse;
 import com.sha.brain.enums.AuthorityLevel;
 import com.sha.brain.enums.ShaResponseType;
+import org.springaicommunity.agent.tools.TodoWriteTool;
 import org.springframework.ai.chat.client.AdvisorParams;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -23,6 +24,8 @@ import org.springframework.ai.model.tool.ToolCallLimitExceededException;
 import org.springframework.ai.model.tool.ToolExecutionResult;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,24 +36,29 @@ public class AgentExecutionService {
 
     private static final int MAX_ITERATIONS = 15;
 
+    private static final String TODO_WRITE_TOOL = "TodoWrite";
+
     private final ChatClient chatClient;
     private final AgentApprovalService approvalService;
     private final ToolCallingManager toolCallingManager;
     private final DeveloperToolkit toolkit;
     private final ChatMemory chatMemory;
+    private final ObjectMapper objectMapper;
 
     public AgentExecutionService(
             @Qualifier("nvidiaChatClient") ChatClient chatClient,
             AgentApprovalService approvalService,
             ToolCallingManager toolCallingManager,
             DeveloperToolkit toolkit,
-            ChatMemory chatMemory
+            ChatMemory chatMemory,
+            ObjectMapper objectMapper
     ) {
         this.chatClient = chatClient;
         this.approvalService = approvalService;
         this.toolCallingManager = toolCallingManager;
         this.toolkit = toolkit;
         this.chatMemory = chatMemory;
+        this.objectMapper = objectMapper;
     }
 
     public ShaBrainResponse execute(
@@ -114,7 +122,8 @@ public class AgentExecutionService {
                 userMessage,
                 prompt,
                 chatResponse,
-                0
+                0,
+                null
         );
     }
 
@@ -185,7 +194,8 @@ public class AgentExecutionService {
                 approval.userMessage(),
                 new Prompt(history, options),
                 chatResponse,
-                approval.iterations()
+                approval.iterations(),
+                approval.plan()
         );
     }
 
@@ -199,7 +209,8 @@ public class AgentExecutionService {
             String userMessage,
             Prompt prompt,
             ChatResponse chatResponse,
-            int iterations
+            int iterations,
+            TodoWriteTool.Todos plan
     ) {
 
         while (chatResponse.hasToolCalls()) {
@@ -213,6 +224,8 @@ public class AgentExecutionService {
                     chatResponse.getResult()
                             .getOutput()
                             .getToolCalls();
+
+            plan = captureLatestPlan(toolCalls, plan);
 
             int gatedIndex = -1;
             for (int i = 0; i < toolCalls.size(); i++) {
@@ -248,14 +261,15 @@ public class AgentExecutionService {
                         answeredCalls,
                         gatedTool,
                         iterations,
-                        conversationId
+                        conversationId,
+                        plan
                 );
 
                 return new ShaBrainResponse(
                         ShaResponseType.APPROVAL_REQUIRED,
                         "Approval required before executing "
                                 + gatedCall.name() + ".",
-                        null,
+                        toPlanNode(plan),
                         true,
                         approvalId
                 );
@@ -284,7 +298,7 @@ public class AgentExecutionService {
                 chatResponse.getResult()
                         .getOutput()
                         .getText(),
-                null,
+                toPlanNode(plan),
                 false,
                 ""
         );
@@ -375,6 +389,39 @@ public class AgentExecutionService {
                         .equals(toolName))
                 .findFirst()
                 .orElse(null);
+    }
+
+    private TodoWriteTool.Todos captureLatestPlan(
+            List<AssistantMessage.ToolCall> toolCalls,
+            TodoWriteTool.Todos current
+    ) {
+
+        TodoWriteTool.Todos latest = current;
+
+        for (AssistantMessage.ToolCall toolCall : toolCalls) {
+
+            if (!TODO_WRITE_TOOL.equals(toolCall.name())) {
+                continue;
+            }
+
+            try {
+                TodoWriteTool.Todos parsed = objectMapper.readValue(
+                        toolCall.arguments(),
+                        TodoWriteTool.Todos.class
+                );
+                if (parsed != null && parsed.todos() != null) {
+                    latest = parsed;
+                }
+            } catch (Exception e) {
+                // Ignore a malformed plan update and retain the last valid plan.
+            }
+        }
+
+        return latest;
+    }
+
+    private JsonNode toPlanNode(TodoWriteTool.Todos plan) {
+        return plan == null ? null : objectMapper.valueToTree(plan);
     }
 
     private ShaBrainResponse error(String message) {

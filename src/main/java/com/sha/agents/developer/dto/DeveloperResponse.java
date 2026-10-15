@@ -3,6 +3,7 @@ package com.sha.agents.developer.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import tools.jackson.databind.JsonNode;
 
 @Data
 @AllArgsConstructor
@@ -13,4 +14,5 @@ public class DeveloperResponse {
     private String message;
     private boolean approvalRequired;
     private String approvalToken;
+    private JsonNode plan;
 }

@@ -1,6 +1,7 @@
 package com.sha.brain.approval;
 
 import com.sha.agents.tools.AgentShaTool;
+import org.springaicommunity.agent.tools.TodoWriteTool;
 
 import java.util.List;
 
@@ -16,7 +17,8 @@ public record AgentPendingApproval(
         List<AnsweredToolCall> answeredCalls,
         AgentShaTool tool,
         int iterations,
-        String conversationId
+        String conversationId,
+        TodoWriteTool.Todos plan
 ) {
 
     public record AnsweredToolCall(
