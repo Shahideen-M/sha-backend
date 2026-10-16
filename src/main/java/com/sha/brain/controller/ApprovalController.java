@@ -6,6 +6,10 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/approval")
+@CrossOrigin(origins = {
+        "http://localhost:5173",
+        "https://sha-ai.netlify.app"
+})
 @RequiredArgsConstructor
 public class ApprovalController {
 
