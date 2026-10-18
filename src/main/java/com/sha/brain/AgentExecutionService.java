@@ -1,6 +1,7 @@
 package com.sha.brain;
 
 import com.sha.agents.developer.tools.DeveloperToolkit;
+import com.sha.agents.developer.tools.PendingActionDetails;
 import com.sha.agents.tools.AgentShaTool;
 import com.sha.brain.approval.AgentApprovalService;
 import com.sha.brain.approval.AgentPendingApproval;
@@ -271,7 +272,13 @@ public class AgentExecutionService {
                                 + gatedCall.name() + ".",
                         toPlanNode(plan),
                         true,
-                        approvalId
+                        approvalId,
+                        PendingActionDetails.build(
+                                objectMapper,
+                                gatedCall.name(),
+                                gatedCall.arguments(),
+                                projectPath
+                        )
                 );
             }
 

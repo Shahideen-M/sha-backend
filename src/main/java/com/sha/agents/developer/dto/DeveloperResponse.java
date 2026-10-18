@@ -15,4 +15,5 @@ public class DeveloperResponse {
     private boolean approvalRequired;
     private String approvalToken;
     private JsonNode plan;
+    private JsonNode action;
 }

@@ -123,7 +123,8 @@ public class DeveloperService {
                 response.getType() ==
                         com.sha.brain.enums.ShaResponseType.APPROVAL_REQUIRED,
                 response.getApprovalToken(),
-                response.getData()
+                response.getData(),
+                response.getAction()
         );
     }
 }

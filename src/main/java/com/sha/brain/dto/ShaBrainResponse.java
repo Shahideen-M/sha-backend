@@ -17,4 +17,21 @@ public class ShaBrainResponse {
 
     private Boolean approvalRequired = false;
     private String approvalToken = "";
+
+    private JsonNode action;
+
+    public ShaBrainResponse(
+            ShaResponseType type,
+            String message,
+            JsonNode data,
+            Boolean approvalRequired,
+            String approvalToken
+    ) {
+        this.type = type;
+        this.message = message;
+        this.data = data;
+        this.approvalRequired = approvalRequired;
+        this.approvalToken = approvalToken;
+        this.action = null;
+    }
 }
