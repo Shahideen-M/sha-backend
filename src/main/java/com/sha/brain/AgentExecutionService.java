@@ -39,6 +39,15 @@ public class AgentExecutionService {
 
     private static final String TODO_WRITE_TOOL = "TodoWrite";
 
+    private static final int MAX_TOOL_NUDGES = 1;
+
+    private static final String NUDGE_INSTRUCTION =
+            "You have not used any tool. Do not ask the user for approval in "
+            + "ordinary text, because a text question does not create an "
+            + "approval. When an action is required, invoke the appropriate "
+            + "tool: the protected tool call is what requests approval. "
+            + "Proceed by calling the appropriate tool now.";
+
     private final ChatClient chatClient;
     private final AgentApprovalService approvalService;
     private final ToolCallingManager toolCallingManager;
@@ -213,6 +222,25 @@ public class AgentExecutionService {
             int iterations,
             TodoWriteTool.Todos plan
     ) {
+
+        int nudges = 0;
+
+        if (iterations == 0
+                && !chatResponse.hasToolCalls()
+                && nudges < MAX_TOOL_NUDGES) {
+            nudges++;
+            Prompt augmented = prompt.augmentSystemMessage(NUDGE_INSTRUCTION);
+            prompt = new Prompt(augmented.getInstructions(), optionsBuilder.build());
+            ChatResponse retry = callModel(
+                    prompt.getInstructions(),
+                    optionsBuilder,
+                    conversationId
+            );
+            if (retry == null) {
+                return error("No response from AI.");
+            }
+            chatResponse = retry;
+        }
 
         while (chatResponse.hasToolCalls()) {
 
