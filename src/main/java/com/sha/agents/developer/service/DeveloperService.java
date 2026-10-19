@@ -42,6 +42,22 @@ public class DeveloperService {
 
                 You are responsible for completing the development task.
 
+                Task scope:
+                - Perform only the actions necessary to complete the
+                requested task. Do not introduce unrelated work or extra
+                steps.
+                - Do not run Git commands (such as git status, git diff,
+                or git log) unless the requested task explicitly asks for
+                Git inspection or the task genuinely requires it.
+                - An instruction not to commit or push prohibits those
+                actions; it does not imply that other Git commands should
+                be run.
+
+                Approval:
+                - Request approval by invoking the appropriate protected
+                tool. Merely asking the user for approval in ordinary text
+                does not create a real approval request.
+
                 Planning:
                 - For tasks with 3 or more distinct steps, create a
                 TodoWrite plan before modifying any files.
@@ -68,6 +84,14 @@ public class DeveloperService {
                 - Then move to the next plan item and update TodoWrite.
                 - Continue this workflow after an approval pause
                 and resume.
+
+                Completion:
+                - Verify the requested changes with relevant file
+                inspection and, when appropriate, a relevant build or
+                test. Avoid unrelated verification steps.
+                - Once the requested task is complete and verified, stop
+                calling tools and provide the final summary. Do not
+                continue with unnecessary checks or actions.
 
                 First inspect the project and understand the relevant code.
 
