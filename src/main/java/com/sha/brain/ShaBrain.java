@@ -1,10 +1,13 @@
 package com.sha.brain;
 
 import com.sha.brain.approval.AgentApprovalService;
+import com.sha.brain.approval.AgentPendingApproval;
 import com.sha.brain.approval.ApprovalService;
 import com.sha.brain.approval.ApprovedAction;
 import com.sha.brain.approval.ApprovedAgentAction;
+import com.sha.brain.approval.PendingApproval;
 import com.sha.brain.dto.ShaBrainResponse;
+import com.sha.brain.enums.ShaResponseType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -31,11 +34,33 @@ public class ShaBrain {
         }
     }
 
-    public boolean reject(String approvalId) {
-        if (approvalService.reject(approvalId)) {
-            return true;
+    public ShaBrainResponse reject(String approvalId) {
+        PendingApproval skillApproval = approvalService.rejectAndGet(approvalId);
+        if (skillApproval != null) {
+            return rejected(skillApproval.toolName());
         }
-        return agentApprovalService.reject(approvalId);
+        AgentPendingApproval agentApproval = agentApprovalService.rejectAndGet(approvalId);
+        if (agentApproval != null) {
+            return rejected(agentApproval.toolName());
+        }
+        return new ShaBrainResponse(
+                ShaResponseType.ERROR,
+                "No pending approval found for this request. "
+                        + "It may have already been approved, rejected, or expired.",
+                null,
+                false,
+                ""
+        );
     }
 
+    private ShaBrainResponse rejected(String toolName) {
+        return new ShaBrainResponse(
+                ShaResponseType.REJECTED,
+                "Rejected " + toolName
+                        + ". The action was not executed and the current execution has stopped.",
+                null,
+                false,
+                ""
+        );
+    }
 }

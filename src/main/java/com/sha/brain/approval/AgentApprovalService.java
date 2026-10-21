@@ -62,7 +62,7 @@ public class AgentApprovalService {
         return new ApprovedAgentAction(approval);
     }
 
-    public boolean reject(String id) {
-        return pendingApprovals.remove(id) != null;
+    public AgentPendingApproval rejectAndGet(String id) {
+        return pendingApprovals.remove(id);
     }
 }

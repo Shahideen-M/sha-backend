@@ -49,7 +49,7 @@ public class ApprovalService {
         return new ApprovedAction(approval);
     }
 
-    public boolean reject(String id) {
-        return pendingApprovals.remove(id) != null;
+    public PendingApproval rejectAndGet(String id) {
+        return pendingApprovals.remove(id);
     }
 }
