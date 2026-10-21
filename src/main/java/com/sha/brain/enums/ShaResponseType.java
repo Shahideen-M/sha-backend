@@ -5,5 +5,6 @@ public enum ShaResponseType {
     EXECUTION_RESULT,
     APPROVAL_REQUIRED,
     CLARIFICATION,
+    REJECTED,
     ERROR
 }
