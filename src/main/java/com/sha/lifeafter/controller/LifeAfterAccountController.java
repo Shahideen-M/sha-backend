@@ -1,7 +1,7 @@
 package com.sha.lifeafter.controller;
 
-import com.sha.lifeafter.entity.LifeAfterAccount;
-import com.sha.lifeafter.service.LifeAfterAccountService;
+import com.sha.lifeafter.entity.LifeAfterCharacter;
+import com.sha.lifeafter.service.LifeAfterCharacterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,29 +12,29 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LifeAfterAccountController {
 
-    private final LifeAfterAccountService accountService;
+    private final LifeAfterCharacterService accountService;
 
-    @PostMapping("/accounts")
-    public LifeAfterAccount createAccount(@RequestBody LifeAfterAccount account) {
+    @PostMapping("/characters")
+    public LifeAfterCharacter createAccount(@RequestBody LifeAfterCharacter account) {
         return accountService.createAccount(account);
     }
 
-    @GetMapping("/accounts")
-    public List<LifeAfterAccount> findAll() {
+    @GetMapping("/characters")
+    public List<LifeAfterCharacter> findAll() {
         return accountService.findAll();
     }
 
-    @GetMapping("/accounts/{id}")
-    public LifeAfterAccount findById(@PathVariable Long id) {
+    @GetMapping("/characters/{id}")
+    public LifeAfterCharacter findById(@PathVariable Long id) {
         return accountService.findById(id);
     }
 
-    @PatchMapping("/accounts/{id}/name")
-    public LifeAfterAccount update(@PathVariable Long id, @RequestBody String newName) {
-        return accountService.renameAccount(id, newName);
+    @PatchMapping("/characters/{id}/name")
+    public LifeAfterCharacter update(@PathVariable Long id, @RequestBody LifeAfterCharacter character) {
+        return accountService.updateCharacter(id, character);
     }
 
-    @DeleteMapping("/accounts/delete/{id}")
+    @DeleteMapping("/characters/delete/{id}")
     public void delete(@PathVariable Long id) {
         accountService.deleteAccount(id);
     }
