@@ -34,6 +34,7 @@ public class MemorySkill implements Skill<MemoryRequest, MemoryResponse> {
             case SAVE -> save(request);
             case SEARCH -> search(request);
             case GET -> get(request);
+            case UPDATE -> update(request);
             case DELETE -> delete(request);
         };
     }
@@ -101,6 +102,20 @@ public class MemorySkill implements Skill<MemoryRequest, MemoryResponse> {
                         ),
 
                         new OperationPrompt<>(
+                                MemoryOperation.UPDATE,
+                                "Update an existing memory by ID.",
+                                List.of("id", "content", "category"),
+                                """
+                                {
+                                  "id":1,
+                                  "content":"User prefers Kotlin and Spring Boot.",
+                                  "category":"preference",
+                                  "operation":"UPDATE"
+                                }
+                                """
+                        ),
+
+                        new OperationPrompt<>(
                                 MemoryOperation.DELETE,
                                 "Delete a memory by ID.",
                                 List.of("id"),
@@ -157,6 +172,28 @@ public class MemorySkill implements Skill<MemoryRequest, MemoryResponse> {
                 true,
                 "Memory retrieved successfully.",
                 memory,
+                null
+        );
+    }
+
+    public MemoryResponse update(MemoryRequest request) {
+
+        Memory memory = memoryService.getById(request.getId());
+
+        if (request.getContent() != null) {
+            memory.setContent(request.getContent());
+        }
+        if (request.getCategory() != null) {
+            memory.setCategory(request.getCategory());
+        }
+        memory.setUpdatedAt(LocalDateTime.now());
+
+        Memory updated = memoryService.save(memory);
+
+        return new MemoryResponse(
+                true,
+                "Memory updated successfully",
+                updated,
                 null
         );
     }
