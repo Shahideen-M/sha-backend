@@ -4,5 +4,6 @@ public enum MemoryOperation {
     SAVE,
     SEARCH,
     GET,
+    UPDATE,
     DELETE
 }
